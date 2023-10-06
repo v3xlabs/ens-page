@@ -5,6 +5,7 @@ import { FaTelegram } from 'react-icons/fa';
 import { FiGithub, FiLink, FiTwitter } from 'react-icons/fi';
 
 import { useEnstate } from '../../hooks/useEnstate';
+import { useWarpcast } from '../../hooks/useWarpcast';
 
 const Button: FC<PropsWithChildren<{ href: string }>> = ({
     children,
@@ -84,9 +85,10 @@ export default async function ({
         throw new Error('Invalid ENS name');
     }
 
-    // if (!name.match(/^[a-z0-9-.]+$/)) {
-
-    const data = await useEnstate(name);
+    const [enstate, farcaster] = await Promise.all([
+        useEnstate(name),
+        useWarpcast(name),
+    ]);
 
     return (
         <div className="mx-auto w-full max-w-md flex flex-col gap-8 mt-4 lg:mt-10 px-6 py-8">
@@ -102,7 +104,7 @@ export default async function ({
                 <div className="flex items-center relative w-full pt-8">
                     <div className="mx-auto w-40 h-40 aspect-square border bg-white rounded-full overflow-hidden">
                         <img
-                            src={data.avatar}
+                            src={enstate.avatar}
                             alt="profile"
                             className="w-full h-full"
                         />
@@ -117,17 +119,29 @@ export default async function ({
                 </div>
                 <div className="text-center px-2 py-2 space-y-2">
                     <div className="text-3xl font-extrabold text-center">
-                        {data.name}
+                        {enstate.name}
                     </div>
-                    {data.records.description && (
-                        <div>{data.records.description}</div>
+                    {enstate.records.description && (
+                        <div>{enstate.records.description}</div>
                     )}
                 </div>
             </div>
             <div className="flex flex-col gap-4">
-                {Object.keys(data.records)
-                    .map((key) => buttonControls(key, data.records[key]))
+                {Object.keys(enstate.records)
+                    .map((key) => buttonControls(key, enstate.records[key]))
                     .filter(Boolean)}
+                {farcaster && farcaster.result && (
+                    <Button
+                        href={`https://warpcast.com/${farcaster.result.user.username}`}
+                    >
+                        <img
+                            src="/warpcaster.svg"
+                            alt="warpcaster"
+                            style={{ height: '1em', width: '1em' }}
+                        ></img>
+                        Message on Farcaster
+                    </Button>
+                )}
                 <Button href={'https://ens.app/' + name}>
                     <div
                         className="bg-white"

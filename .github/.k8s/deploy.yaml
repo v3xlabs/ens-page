@@ -1,0 +1,23 @@
+# Kubernetes Deployment of ghcr.io/v3xlabs/ens-page:sha-422fabf exposing port 3000 over a service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ens-page
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: ens-page
+  template:
+    metadata:
+      labels:
+        run: ens-page
+    spec:
+      containers:
+        - name: ens-page
+          image: ghcr.io/v3xlabs/ens-page:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          resources: {}
