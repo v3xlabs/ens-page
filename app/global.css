@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.btn {
+    @apply bg-[#7116EB] relative rounded-lg flex items-center justify-center gap-2;
+}
