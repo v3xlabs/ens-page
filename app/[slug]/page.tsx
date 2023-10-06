@@ -3,6 +3,7 @@ import { formatRecord } from '@ens-tools/format';
 import { FC, PropsWithChildren, ReactNode } from 'react';
 import { FaTelegram } from 'react-icons/fa';
 import { FiGithub, FiLink, FiTwitter } from 'react-icons/fi';
+import shortNumber from 'short-number';
 
 import { useEnstate } from '../../hooks/useEnstate';
 import { useWarpcast } from '../../hooks/useWarpcast';
@@ -15,7 +16,7 @@ const Button: FC<PropsWithChildren<{ href: string }>> = ({
         <a
             href={href}
             target="_blank"
-            className="bg-[#7116EB] rounded-lg px-4 py-3 flex items-center justify-center gap-2"
+            className="bg-[#7116EB] relative rounded-lg px-4 py-3 flex items-center justify-center gap-2"
         >
             {children}
         </a>
@@ -139,7 +140,10 @@ export default async function ({
                             alt="warpcaster"
                             style={{ height: '1em', width: '1em' }}
                         ></img>
-                        Message on Farcaster
+                        {farcaster.result.user.username}
+                        <div className="bg-white/20 text-white px-2 py-1 rounded-md absolute right-2">
+                            {shortNumber(farcaster.result.user.followerCount)}
+                        </div>
                     </Button>
                 )}
                 <Button href={'https://ens.app/' + name}>
@@ -152,4 +156,29 @@ export default async function ({
             </div>
         </div>
     );
+}
+
+// Metadata
+import { Metadata } from 'next';
+
+// or Dynamic metadata
+export async function generateMetadata({
+    params: { slug },
+}: {
+    params: { slug: string };
+}) {
+    const raw_name = slug;
+    const name = ens_normalize(raw_name.toLowerCase());
+
+    if (raw_name.toLowerCase() !== name) {
+        throw new Error('Invalid ENS name');
+    }
+
+    const data = await useEnstate(name);
+
+    return {
+        title: `${data.name} | ENS Page`,
+        description: data.records.description || `View ${data.name}'s ENS Page`,
+        icons: data.avatar,
+    } as Metadata;
 }

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: ens-page
-          image: ghcr.io/v3xlabs/ens-page:latest
+          image: ghcr.io/v3xlabs/ens-page:edge
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
