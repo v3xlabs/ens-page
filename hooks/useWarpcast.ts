@@ -28,7 +28,7 @@ type WarpcastProfile = {
     };
 };
 
-type WarpcastResponse = {
+export type WarpcastResponse = {
     result?: {
         user: WarpcastProfile;
         inviter: WarpcastProfile;

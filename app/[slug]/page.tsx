@@ -1,78 +1,13 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import { ens_normalize } from '@adraffy/ens-normalize';
-import { formatRecord } from '@ens-tools/format';
 import { Metadata } from 'next';
-import { FC, PropsWithChildren, ReactNode } from 'react';
-import { FaTelegram } from 'react-icons/fa';
-import { FiGithub, FiLink, FiTwitter } from 'react-icons/fi';
-import shortNumber from 'short-number';
 
 import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
+import { RecordsSection } from '../../components/Records/records';
+import { XMTPSection } from '../../components/XMTP/section';
 import { useEnstate } from '../../hooks/useEnstate';
 import { useIYKRef } from '../../hooks/useIYKRef';
 import { useWarpcast } from '../../hooks/useWarpcast';
-
-const Button: FC<PropsWithChildren<{ href: string }>> = ({
-    children,
-    href,
-}) => {
-    return (
-        <a href={href} target="_blank" className="btn px-4 py-3">
-            {children}
-        </a>
-    );
-};
-
-const buttonControls = (key: string, value: string): ReactNode | undefined => {
-    const formatted = formatRecord(key as any, value);
-
-    if (key == 'com.twitter') {
-        return (
-            <Button href={'https://twitter.com/' + formatted}>
-                <FiTwitter />
-                {formatted || value}
-            </Button>
-        );
-    }
-
-    if (key == 'url') {
-        const { hostname } = new URL(formatted || value);
-
-        return (
-            <Button href={value}>
-                <FiLink />
-                {hostname}
-            </Button>
-        );
-    }
-
-    if (key == 'com.github') {
-        return (
-            <Button href={'https://github.com/' + (formatted || value)}>
-                <FiGithub />
-                {formatted || value}
-            </Button>
-        );
-    }
-
-    if (key == 'org.telegram') {
-        return (
-            <Button
-                href={'https://t.me/' + (formatted || value).replace(/^@/, '')}
-            >
-                <FaTelegram />
-                {formatted || value}
-            </Button>
-        );
-    }
-
-    if (key == 'com.discord') {
-        // TODO: Discord url: https://discord.com/users/1234567890 <-- userid
-        // Can be done once discord implements a way to resolve user ids, or we change the record
-    }
-
-    // return <div>Unknown {key}</div>;
-};
 
 export default async function ({
     params: { slug },
@@ -131,36 +66,9 @@ export default async function ({
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col gap-4">
-                    {Object.keys(enstate.records)
-                        .map((key) => buttonControls(key, enstate.records[key]))
-                        .filter(Boolean)}
-                    {farcaster && farcaster.result && (
-                        <Button
-                            href={`https://warpcast.com/${farcaster.result.user.username}`}
-                        >
-                            <img
-                                src="/farcaster.svg"
-                                alt="warpcaster"
-                                style={{ height: '1em', width: '1em' }}
-                            ></img>
-                            @{farcaster.result.user.username} on farcaster
-                            <div className="bg-white/20 text-white px-2 py-1 rounded-md absolute right-2">
-                                {shortNumber(
-                                    farcaster.result.user.followerCount
-                                )}
-                            </div>
-                        </Button>
-                    )}
-                    <Button href={'https://ens.app/' + name}>
-                        <div
-                            className="bg-white"
-                            style={{ height: '1em', width: '1em' }}
-                        ></div>
-                        View on ENS App
-                    </Button>
-                    {iykData && <SPOAPModal data={iykData} name={name} />}
-                </div>
+                <RecordsSection enstate={enstate} farcaster={farcaster} />
+                <XMTPSection address={enstate.address} name={enstate.name} />
+                {iykData && <SPOAPModal data={iykData} name={enstate.name} />}
             </div>
         </div>
     );

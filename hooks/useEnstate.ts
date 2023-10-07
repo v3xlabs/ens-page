@@ -23,10 +23,12 @@ const FALLBACK_DATA = {
     errors: {},
 };
 
+export type EnstateResponse = typeof FALLBACK_DATA;
+
 export const useEnstate = async (name: string) => {
     const http = await fetch(`https://enstate.rs/n/${name}`);
 
-    const data: typeof FALLBACK_DATA = await http.json();
+    const data: EnstateResponse = await http.json();
 
     return data;
 };
