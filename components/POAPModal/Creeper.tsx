@@ -1,13 +1,26 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Creeper = () => {
     const [blinkAnimationTriggered, setBlinkAnimationTriggered] =
         useState(false);
+
+    // every 5 seconds, blink
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBlinkAnimationTriggered(true);
+            setTimeout(() => {
+                setBlinkAnimationTriggered(false);
+            }, 250);
+        }, 10_000);
+
+        return () => clearInterval(interval);
+    }, [0]);
 
     return (
         <div className="absolute top-0 left-4 h-12 sm:w-32 hidden xs:block -translate-y-[1px]">
