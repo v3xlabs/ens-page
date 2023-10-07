@@ -2,6 +2,7 @@
 import { ens_normalize } from '@adraffy/ens-normalize';
 import { Metadata } from 'next';
 
+import { MonsterOverlay } from '../../components/Monsters/Overlay';
 import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
 import { RecordsSection } from '../../components/Records/records';
 import { XMTPSection } from '../../components/XMTP/section';
@@ -41,7 +42,7 @@ export default async function ({
                     <div>November 13 2023, Istanbul Türkiye</div>
                 </div>
                 <div className="w-full flex flex-col gap-2 items-center justify-center">
-                    <div className="flex items-center relative w-full pt-8">
+                    <div className="flex items-center relative w-full pt-8 pb-2">
                         <div className="mx-auto w-40 h-40 aspect-square border bg-white rounded-full overflow-hidden">
                             <img
                                 src={enstate.avatar}
@@ -50,14 +51,10 @@ export default async function ({
                             />
                         </div>
                         <div className="absolute inset-0">
-                            <img
-                                src="/frensday_1.svg"
-                                alt="frensday"
-                                className="w-full h-full object-contain"
-                            />
+                            <MonsterOverlay />
                         </div>
                     </div>
-                    <div className="text-center px-2 py-2 space-y-2">
+                    <div className="text-center px-2 space-y-2">
                         <div className="text-3xl font-extrabold text-center">
                             {enstate.name}
                         </div>
