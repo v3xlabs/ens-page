@@ -99,7 +99,7 @@ export default async function ({
             <div className="w-full max-w-md mx-auto flex flex-col gap-8">
                 <div className="text-center px-4">
                     <img
-                        src="/frensday_2.png"
+                        src="/frensday_2.svg"
                         alt="frensday"
                         className="w-full h-auto mx-auto"
                     />
