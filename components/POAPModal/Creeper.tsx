@@ -4,11 +4,13 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 'use client';
 
+import cslx from 'clsx';
 import { useEffect, useState } from 'react';
 
 export const Creeper = () => {
     const [blinkAnimationTriggered, setBlinkAnimationTriggered] =
         useState(false);
+    const [clickCount, setClickCount] = useState(0);
 
     // every 5 seconds, blink
     useEffect(() => {
@@ -23,11 +25,17 @@ export const Creeper = () => {
     }, [0]);
 
     return (
-        <div className="absolute top-0 left-4 h-12 sm:w-32 hidden xs:block -translate-y-[1px]">
+        <div
+            className={cslx(
+                'absolute top-0 left-4 h-12 sm:w-32 -z-10',
+                clickCount > 5 ? 'animate-creeper-out' : 'hidden xs:block' // -translate-y-[1px]
+            )}
+        >
             <div
                 className="relative w-fit h-full mx-auto"
                 onClick={() => {
                     setBlinkAnimationTriggered(true);
+                    setClickCount(clickCount + 1);
                     setTimeout(() => {
                         setBlinkAnimationTriggered(false);
                     }, 250);

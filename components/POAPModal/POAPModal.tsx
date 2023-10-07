@@ -42,10 +42,10 @@ export const POAPModal: FC<{
     return (
         <div className="fixed bottom-0 inset-x-0 px-2 pb-4">
             <div className="w-full max-w-md3 mx-auto">
-                <div className="p-4 text-center relative">
+                <div className="p-4 text-center relative flex flex-col items-center">
                     <Creeper />
                     <div className="absolute inset-x-0 bottom-0 top-12 bg-[#14032C] rounded-3xl -z-10"></div>
-                    <div className="w-24 h-24 bg-slate-100 rounded-full mx-auto">
+                    <div className="w-24 h-24 bg-slate-100 rounded-full">
                         <img
                             src={metadata.image_url}
                             alt=""

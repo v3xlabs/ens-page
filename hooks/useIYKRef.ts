@@ -53,6 +53,6 @@ export const useIYKRef = async (reference?: string) => {
 
     const result: IYKRefResponse = await response.json();
 
-    // return DEBUG_VALUE as IYKRefResponse;
-    return result;
+    return DEBUG_VALUE as IYKRefResponse;
+    // return result;
 };
