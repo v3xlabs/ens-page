@@ -30,7 +30,8 @@ export const POAPModal: FC<{
 
     const shouldHideCuzExpired =
         event.status === 'expired' &&
-        expiry_date - current_date + HIDE_AFTER_TIME < 0 && !SHOW_POAP_ANYWAYS;
+        expiry_date - current_date + HIDE_AFTER_TIME < 0 &&
+        !SHOW_POAP_ANYWAYS;
 
     useEffect(() => {
         setHasRendered(true);
