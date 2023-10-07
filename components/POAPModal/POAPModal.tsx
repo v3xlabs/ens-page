@@ -6,6 +6,9 @@ import { FiX } from 'react-icons/fi';
 import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
 import { POAPMetadata } from '../../hooks/usePOAPData';
 
+// 10 days
+const HIDE_AFTER_TIME = 1000 * 60 * 60 * 24 * 100;
+
 export const POAPModal: FC<{
     data: IYKReferenceResponse;
     name: string;
@@ -14,11 +17,23 @@ export const POAPModal: FC<{
     const [dismissed, setDismissed] = useState(false);
     const [hasRendered, setHasRendered] = useState(false);
 
+    const [event] = data.poapEvents;
+    const expiry_data = metadata.attributes.find(
+        (attribute) => attribute.trait_type == 'endDate'
+    );
+
+    const expiry_date = new Date(expiry_data.value).getTime();
+    const current_date = Date.now();
+
+    const shouldHideCuzExpired =
+        event.status === 'expired' &&
+        expiry_date - current_date + HIDE_AFTER_TIME < 0;
+
     useEffect(() => {
         setHasRendered(true);
     }, [0]);
 
-    if (dismissed || !hasRendered) return;
+    if (dismissed || !hasRendered || shouldHideCuzExpired) return;
 
     return (
         <div className="fixed bottom-0 inset-x-0 px-2 pb-4">
