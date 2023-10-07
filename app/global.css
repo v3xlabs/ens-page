@@ -5,3 +5,8 @@
 .btn {
     @apply bg-[#7116EB] relative rounded-lg flex items-center justify-center gap-2;
 }
+
+.balance {
+    text-wrap: pretty;
+    text-wrap: balance;
+}
