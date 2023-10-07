@@ -41,8 +41,12 @@ const DEBUG_VALUE = {
 export const useIYKRef = async (reference?: string) => {
     if (!reference) return;
 
+    const headers = new Headers();
+
+    headers.append('x-api-key', process.env.IYK_API_KEY);
+
     const response = await fetch('https://api.iyk.app/refs/' + reference, {
-        headers: { 'x-api-key': process.env.IYK_API_KEY },
+        headers,
     });
 
     if (!response.ok) return;

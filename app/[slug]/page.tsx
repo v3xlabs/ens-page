@@ -7,7 +7,7 @@ import { FaTelegram } from 'react-icons/fa';
 import { FiGithub, FiLink, FiTwitter } from 'react-icons/fi';
 import shortNumber from 'short-number';
 
-import { SPOAPModal } from '../../components/SPOAPModal';
+import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
 import { useEnstate } from '../../hooks/useEnstate';
 import { useIYKRef } from '../../hooks/useIYKRef';
 import { useWarpcast } from '../../hooks/useWarpcast';

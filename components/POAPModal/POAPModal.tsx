@@ -3,8 +3,8 @@
 import { FC, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 
-import { IYKRefResponse as IYKReferenceResponse } from '../hooks/useIYKRef';
-import { POAPMetadata } from '../hooks/usePOAPData';
+import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
+import { POAPMetadata } from '../../hooks/usePOAPData';
 
 export const POAPModal: FC<{
     data: IYKReferenceResponse;

@@ -1,7 +1,7 @@
 import { FC } from 'react';
 
-import { IYKRefResponse as IYKReferenceResponse } from '../hooks/useIYKRef';
-import { usePOAPData } from '../hooks/usePOAPData';
+import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
+import { usePOAPData } from '../../hooks/usePOAPData';
 import { POAPModal } from './POAPModal';
 
 export const SPOAPModal: FC<{
