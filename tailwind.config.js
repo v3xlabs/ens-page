@@ -10,7 +10,12 @@ module.exports = {
         './src/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
-        extend: {},
+        extend: {
+            maxWidth: {
+                md2: '420px',
+                md3: '458px',
+            },
+        },
     },
     plugins: [],
 };

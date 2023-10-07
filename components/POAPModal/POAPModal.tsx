@@ -21,8 +21,8 @@ export const POAPModal: FC<{
     if (dismissed || !hasRendered) return;
 
     return (
-        <div className="fixed bottom-0 inset-x-0 px-3 pb-4">
-            <div className="w-full max-w-md mx-auto">
+        <div className="fixed bottom-0 inset-x-0 px-2 pb-4">
+            <div className="w-full max-w-md3 mx-auto">
                 <div className="p-4 text-center relative">
                     <img
                         src="/creeper.svg"
