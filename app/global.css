@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .btn {
-    @apply bg-[#7116EB] relative rounded-lg flex items-center justify-center gap-2;
+    @apply bg-[#7116EB] relative rounded-lg flex items-center justify-center gap-2 hover:bg-[#781dff] transition-colors duration-200 ease-in-out active:bg-[#5e0fc8];
 }
 
 .balance {
