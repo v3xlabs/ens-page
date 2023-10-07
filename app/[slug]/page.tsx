@@ -140,11 +140,11 @@ export default async function ({
                             href={`https://warpcast.com/${farcaster.result.user.username}`}
                         >
                             <img
-                                src="/warpcaster.svg"
+                                src="/farcaster.svg"
                                 alt="warpcaster"
                                 style={{ height: '1em', width: '1em' }}
                             ></img>
-                            {farcaster.result.user.username}
+                            @{farcaster.result.user.username} on farcaster
                             <div className="bg-white/20 text-white px-2 py-1 rounded-md absolute right-2">
                                 {shortNumber(
                                     farcaster.result.user.followerCount
