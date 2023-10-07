@@ -27,8 +27,8 @@ export const Creeper = () => {
     return (
         <div
             className={cslx(
-                'absolute top-0 left-4 h-12 sm:w-32 -z-10',
-                clickCount > 5 ? 'animate-creeper-out' : 'hidden xs:block' // -translate-y-[1px]
+                'absolute -top-12 left-4 h-12 sm:w-32 -z-10',
+                clickCount > 5 ? 'animate-creeper-out' : 'hidden xs:block'
             )}
         >
             <div
