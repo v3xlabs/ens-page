@@ -20,6 +20,24 @@ export type IYKRefResponse = {
     linkedToken: IYKLinkedToken;
 };
 
+const DEBUG_VALUE = {
+    uid: '1304147270046608',
+    isValidRef: true,
+    poapEvents: [
+        {
+            id: 22_278,
+            poapEventId: 127_866,
+            otp: '7AalDLzTKE92NMLRlPquu',
+            status: 'expired',
+        },
+    ],
+    linkedToken: {
+        contractAddress: '0x6b26ca239e522ac80d636aafd61d339a90ca694d',
+        chainId: 137,
+        tokenId: '12971',
+    },
+};
+
 export const useIYKRef = async (reference?: string) => {
     if (!reference) return;
 
@@ -29,5 +47,8 @@ export const useIYKRef = async (reference?: string) => {
 
     if (!response.ok) return;
 
-    return (await response.json()) as IYKRefResponse;
+    const result: IYKRefResponse = await response.json();
+
+    // return DEBUG_VALUE;
+    return result;
 };
