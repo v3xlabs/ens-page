@@ -85,10 +85,7 @@ export const RecordsSection: FC<{
                 </AButton>
             )}
             <AButton href={'https://ens.app/' + enstate.name}>
-                <div
-                    className="bg-white"
-                    style={{ height: '1em', width: '1em' }}
-                ></div>
+                <img src="/ens.svg" alt="" className="h-5 w-5" />
                 View on ENS App
             </AButton>
         </div>
