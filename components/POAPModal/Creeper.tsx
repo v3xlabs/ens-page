@@ -35,29 +35,38 @@ export const Creeper = () => {
             >
                 <img
                     src="/creeper_eye.svg"
-                    className="w-1 h-1 absolute transition-transform"
+                    className="w-1 h-1 absolute transition-transform z-10"
                     alt="eye"
                     style={{
                         transform: blinkAnimationTriggered
                             ? 'scaleY(0.5) scaleX(1.2)'
                             : '',
                         left: '60%',
-                        top: '35px',
+                        top: blinkAnimationTriggered ? '34px' : '35px',
                     }}
                 />
                 <img
                     src="/creeper_eye.svg"
-                    className="w-1 h-1 absolute transition-transform"
+                    className="w-1 h-1 absolute transition-transform z-10"
                     alt="eye"
                     style={{
                         transform: blinkAnimationTriggered
                             ? 'scaleY(0.5) scaleX(1.2)'
                             : '',
                         left: '70%',
-                        top: '35px',
+                        top: blinkAnimationTriggered ? '34px' : '35px',
                     }}
                 />
-                <img src="/creeper.svg" alt="" className="cursor-pointer" />
+                <img
+                    src="/creeper.svg"
+                    alt=""
+                    className="cursor-pointer transition-transform"
+                    style={{
+                        transform: blinkAnimationTriggered
+                            ? 'scaleY(1.05) translateY(-2.5%)'
+                            : '',
+                    }}
+                />
             </div>
         </div>
     );
