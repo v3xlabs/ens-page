@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 
 import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
@@ -12,8 +12,13 @@ export const POAPModal: FC<{
     metadata: POAPMetadata;
 }> = ({ data, name, metadata }) => {
     const [dismissed, setDismissed] = useState(false);
+    const [hasRendered, setHasRendered] = useState(false);
 
-    if (dismissed) return;
+    useEffect(() => {
+        setHasRendered(true);
+    }, [0]);
+
+    if (dismissed || !hasRendered) return;
 
     return (
         <div className="fixed bottom-0 inset-x-0 px-3 pb-4">
