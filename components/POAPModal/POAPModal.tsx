@@ -5,6 +5,9 @@ import { FiX } from 'react-icons/fi';
 
 import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
 import { POAPMetadata } from '../../hooks/usePOAPData';
+import { Creeper } from './Creeper';
+
+const SHOW_POAP_ANYWAYS = true;
 
 // 10 days
 const HIDE_AFTER_TIME = 1000 * 60 * 60 * 24 * 100;
@@ -27,7 +30,7 @@ export const POAPModal: FC<{
 
     const shouldHideCuzExpired =
         event.status === 'expired' &&
-        expiry_date - current_date + HIDE_AFTER_TIME < 0;
+        expiry_date - current_date + HIDE_AFTER_TIME < 0 && !SHOW_POAP_ANYWAYS;
 
     useEffect(() => {
         setHasRendered(true);
@@ -39,11 +42,7 @@ export const POAPModal: FC<{
         <div className="fixed bottom-0 inset-x-0 px-2 pb-4">
             <div className="w-full max-w-md3 mx-auto">
                 <div className="p-4 text-center relative">
-                    <img
-                        src="/creeper.svg"
-                        alt=""
-                        className="absolute top-0 left-4 h-12"
-                    />
+                    <Creeper />
                     <div className="absolute inset-x-0 bottom-0 top-12 bg-[#14032C] rounded-3xl -z-10"></div>
                     <div className="w-24 h-24 bg-slate-100 rounded-full mx-auto">
                         <img

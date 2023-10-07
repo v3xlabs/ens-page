@@ -11,6 +11,9 @@ module.exports = {
     ],
     theme: {
         extend: {
+            screens: {
+                xs: '380px',
+            },
             maxWidth: {
                 md2: '420px',
                 md3: '458px',
