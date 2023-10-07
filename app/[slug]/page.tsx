@@ -95,7 +95,7 @@ export default async function ({
     ]);
 
     return (
-        <div className="w-full mt-4 lg:mt-10 px-6 py-8">
+        <div className="w-full mt-4 lg:mt-10 px-6 py-8 pb-64">
             <div className="w-full max-w-md mx-auto flex flex-col gap-8">
                 <div className="text-center px-4">
                     <img
