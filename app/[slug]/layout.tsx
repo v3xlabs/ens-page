@@ -12,12 +12,6 @@ export default function RootLayout({
     children,
 }: {
     children: React.ReactNode;
-    params: { slug: string };
-    searchParams: { event?: string; iykRef?: string };
 }) {
-    return (
-        // <html lang="en">
-        <div>{children}</div>
-        // </html>
-    );
+    return <>{children}</>;
 }
