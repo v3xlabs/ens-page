@@ -1,14 +1,20 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import { ens_normalize } from '@adraffy/ens-normalize';
+import clsx from 'clsx';
 import { Metadata } from 'next';
 
-import { MonsterOverlay } from '../../components/Monsters/Overlay';
+import { MonsterOverlay } from '../../components/events/frensday/Monsters/Overlay';
+import { EventHeader } from '../../components/Headers/EventHeader';
 import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
 import { RecordsSection } from '../../components/Records/records';
 import { XMTPSection } from '../../components/XMTP/section';
 import { useEnstate } from '../../hooks/useEnstate';
 import { useIYKRef } from '../../hooks/useIYKRef';
 import { useWarpcast } from '../../hooks/useWarpcast';
+
+const theme2Class = {
+    frensday2023: 'theme-frensday2023',
+};
 
 export default async function ({
     params: { slug },
@@ -19,6 +25,7 @@ export default async function ({
 }) {
     const raw_name = slug;
     const name = ens_normalize(raw_name.toLowerCase());
+    const ad_class: string = theme2Class[event] || 'theme-generic';
 
     if (raw_name.toLowerCase() !== name) {
         throw new Error('Invalid ENS name');
@@ -31,16 +38,9 @@ export default async function ({
     ]);
 
     return (
-        <div className="w-full mt-4 lg:mt-10 px-6 py-8 pb-64">
+        <div className={clsx('w-full mt-4 lg:mt-10 px-6 py-8 pb-64', ad_class)}>
             <div className="w-full max-w-md2 mx-auto flex flex-col gap-8">
-                <div className="text-center px-4">
-                    <img
-                        src="/frensday_2.svg"
-                        alt="frensday"
-                        className="w-full h-auto mx-auto"
-                    />
-                    <div>November 13 2023, Istanbul Türkiye</div>
-                </div>
+                <EventHeader event={event} />
                 <div className="w-full flex flex-col gap-2 items-center justify-center">
                     <div className="flex items-center relative w-full pt-8 pb-2">
                         <div className="mx-auto w-40 h-40 aspect-square border bg-white rounded-full overflow-hidden z-10">
@@ -50,9 +50,11 @@ export default async function ({
                                 className="w-full h-full"
                             />
                         </div>
-                        <div className="absolute inset-0">
-                            <MonsterOverlay />
-                        </div>
+                        {event == 'frensday2023' && (
+                            <div className="absolute inset-0">
+                                <MonsterOverlay />
+                            </div>
+                        )}
                     </div>
                     <div className="text-center px-2 space-y-2">
                         <div className="text-3xl font-extrabold text-center">
@@ -64,7 +66,12 @@ export default async function ({
                     </div>
                 </div>
                 <RecordsSection enstate={enstate} farcaster={farcaster} />
-                <XMTPSection address={enstate.address} name={enstate.name} />
+                {event == 'frensday2023' && (
+                    <XMTPSection
+                        address={enstate.address}
+                        name={enstate.name}
+                    />
+                )}
                 {iykData && <SPOAPModal data={iykData} name={enstate.name} />}
             </div>
         </div>

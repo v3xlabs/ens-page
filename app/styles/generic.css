@@ -1,0 +1,21 @@
+.btn {
+    @apply relative rounded-lg flex items-center justify-center gap-2 transition-colors duration-200 ease-in-out;
+}
+
+html:has(.theme-generic) {
+    body {
+        @apply bg-ens-light-background-secondary text-ens-light-text-primary;
+    }
+    .btn {
+        @apply bg-ens-light-blue-primary text-ens-light-text-accent hover:bg-ens-light-blue-bright active:bg-ens-light-blue-active;
+    }
+    .btn-twitter {
+        @apply bg-black text-white hover:bg-[#222] active:bg-[#333];
+    }
+    .btn-telegram {
+        @apply bg-[#33ABE0] hover:bg-[#33ABE0] active:bg-[#33ABE0] hover:brightness-105 active:brightness-95;
+    }
+    .btn-url {
+        @apply bg-ens-light-purple-primary hover:bg-ens-light-purple-bright active:bg-ens-light-purple-active;
+    }
+}

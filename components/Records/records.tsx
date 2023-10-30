@@ -14,7 +14,10 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
 
     if (key == 'com.twitter') {
         return (
-            <AButton href={'https://twitter.com/' + formatted}>
+            <AButton
+                href={'https://twitter.com/' + formatted}
+                className="btn-twitter"
+            >
                 <FiTwitter />
                 {formatted || value}
             </AButton>
@@ -25,7 +28,7 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
         const { hostname } = new URL(formatted || value);
 
         return (
-            <AButton href={value}>
+            <AButton href={value} className="btn-url">
                 <FiLink />
                 {hostname}
             </AButton>
@@ -34,7 +37,10 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
 
     if (key == 'com.github') {
         return (
-            <AButton href={'https://github.com/' + (formatted || value)}>
+            <AButton
+                href={'https://github.com/' + (formatted || value)}
+                className="btn-github"
+            >
                 <FiGithub />
                 {formatted || value}
             </AButton>
@@ -45,6 +51,7 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
         return (
             <AButton
                 href={'https://t.me/' + (formatted || value).replace(/^@/, '')}
+                className="btn-telegram"
             >
                 <FaTelegram />
                 {formatted || value}

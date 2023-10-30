@@ -7,7 +7,7 @@ import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
 import { POAPMetadata } from '../../hooks/usePOAPData';
 import { Creeper } from './Creeper';
 
-const SHOW_POAP_ANYWAYS = true;
+const SHOW_POAP_ANYWAYS = false;
 
 // 10 days
 const HIDE_AFTER_TIME = 1000 * 60 * 60 * 24 * 100;
