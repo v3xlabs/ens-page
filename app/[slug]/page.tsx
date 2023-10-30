@@ -2,6 +2,7 @@
 import { ens_normalize } from '@adraffy/ens-normalize';
 import clsx from 'clsx';
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 import { MonsterOverlay } from '../../components/events/frensday/Monsters/Overlay';
 import { EventHeader } from '../../components/Headers/EventHeader';
@@ -73,6 +74,24 @@ export default async function ({
                     />
                 )}
                 {iykData && <SPOAPModal data={iykData} name={enstate.name} />}
+                <div className="text-center">
+                    Site by{' '}
+                    <Link
+                        href="https://ens.app/?utm_source=ens-page&utm_campaign=footer"
+                        className="text-ens-light-blue"
+                        target="_blank"
+                    >
+                        ENS
+                    </Link>{' '}
+                    &{' '}
+                    <Link
+                        href="https://v3x.company/?utm_source=ens-page&utm_campaign=footer"
+                        className="text-ens-light-blue"
+                        target="_blank"
+                    >
+                        V3X
+                    </Link>
+                </div>
             </div>
         </div>
     );
