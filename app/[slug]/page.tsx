@@ -61,7 +61,7 @@ export default async function ({
                         <div className="text-3xl font-extrabold text-center">
                             {enstate.name}
                         </div>
-                        {enstate.records.description && (
+                        {enstate.records?.description && (
                             <div>{enstate.records.description}</div>
                         )}
                     </div>
@@ -115,7 +115,8 @@ export async function generateMetadata({
 
     return {
         title: `${data.name} | ENS Page`,
-        description: data.records.description || `View ${data.name}'s ENS Page`,
+        description:
+            data.records?.description || `View ${data.name}'s ENS Page`,
         icons: data.avatar,
     } as Metadata;
 }
