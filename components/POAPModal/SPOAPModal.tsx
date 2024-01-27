@@ -7,7 +7,8 @@ import { POAPModal } from './POAPModal';
 export const SPOAPModal: FC<{
     data: IYKReferenceResponse;
     name: string;
-}> = async ({ data, name }) => {
+    event: string;
+}> = async ({ data, name, event }) => {
     if (data.poapEvents.length === 0) return;
 
     const [iyk_poap_event_data] = data.poapEvents;
@@ -16,5 +17,7 @@ export const SPOAPModal: FC<{
 
     if (!metadata) return;
 
-    return <POAPModal data={data} name={name} metadata={metadata} />;
+    return (
+        <POAPModal data={data} name={name} metadata={metadata} event={event} />
+    );
 };

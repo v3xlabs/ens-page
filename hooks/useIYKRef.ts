@@ -4,7 +4,7 @@ type IYKPOAPEvent = {
     id: number;
     poapEventId: number;
     otp: string;
-    status: 'expired';
+    status: 'expired' | 'pending-approval';
 };
 
 type IYKLinkedToken = {

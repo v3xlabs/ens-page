@@ -73,11 +73,17 @@ export default async function ({
                         name={enstate.name}
                     />
                 )}
-                {iykData && <SPOAPModal data={iykData} name={enstate.name} />}
+                {iykData && (
+                    <SPOAPModal
+                        data={iykData}
+                        name={enstate.name}
+                        event={event}
+                    />
+                )}
                 <div className="text-center">
                     Site by{' '}
                     <Link
-                        href="https://ens.app/?utm_source=ens-page&utm_campaign=footer"
+                        href="https://ens.domains/?utm_source=ens-page&utm_campaign=footer"
                         className="text-ens-light-blue"
                         target="_blank"
                     >

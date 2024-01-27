@@ -2,7 +2,8 @@ import { formatRecord } from '@ens-tools/format';
 import { FC } from 'react';
 import { ReactNode } from 'react';
 import { FaTelegram } from 'react-icons/fa';
-import { FiGithub, FiLink, FiTwitter } from 'react-icons/fi';
+import { FaXTwitter } from 'react-icons/fa6';
+import { FiGithub, FiLink } from 'react-icons/fi';
 import shortNumber from 'short-number';
 
 import { EnstateResponse } from '../../hooks/useEnstate';
@@ -18,7 +19,7 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
                 href={'https://twitter.com/' + formatted}
                 className="btn-twitter"
             >
-                <FiTwitter />
+                <FaXTwitter />
                 {formatted || value}
             </AButton>
         );
