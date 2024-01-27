@@ -1,0 +1,22 @@
+html:has(.theme-ethdenver24) {
+    body, html {
+        @apply bg-gradient-to-b from-[#844AFF] to-[#844AFF] text-white;
+    }
+    /* body:before {
+        content: '';
+        @apply fixed inset-0 -z-10 brightness-75;
+        background: url('/ethdenver24/bg.svg') no-repeat center center;
+    } */
+    .btn {
+        @apply bg-[#FF65AF] hover:bg-[#FF65AF] active:bg-[#FF65AF] text-white;
+    }
+    .card-bg {
+        @apply bg-[#F8F8F9] shadow-lg;
+    }
+    .card-body {
+        @apply text-black;
+    }
+    .link {
+        @apply text-[#FF65AF];
+    }
+}

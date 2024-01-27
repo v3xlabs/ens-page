@@ -4,7 +4,7 @@ type IYKPOAPEvent = {
     id: number;
     poapEventId: number;
     otp: string;
-    status: 'expired' | 'pending-approval';
+    status: 'expired' | 'pending-approval' | 'active' | 'future' | 'rejected';
 };
 
 type IYKLinkedToken = {
@@ -43,7 +43,7 @@ export const useIYKRef = async (reference?: string) => {
 
     const headers = new Headers();
 
-    headers.append('x-api-key', process.env.IYK_API_KEY);
+    // headers.append('x-api-key', process.env.IYK_API_KEY);
 
     const response = await fetch('https://api.iyk.app/refs/' + reference, {
         headers,

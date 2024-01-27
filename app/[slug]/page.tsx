@@ -15,6 +15,12 @@ import { useWarpcast } from '../../hooks/useWarpcast';
 
 const theme2Class = {
     frensday2023: 'theme-frensday2023',
+    ethdenver2024: 'theme-ethdenver24',
+};
+
+const theme2Color = {
+    frensday2023: '#2A2244',
+    ethdenver2024: '#844AFF',
 };
 
 export default async function ({
@@ -84,7 +90,7 @@ export default async function ({
                     Site by{' '}
                     <Link
                         href="https://ens.domains/?utm_source=ens-page&utm_campaign=footer"
-                        className="text-ens-light-blue"
+                        className="link"
                         target="_blank"
                     >
                         ENS
@@ -92,7 +98,7 @@ export default async function ({
                     &{' '}
                     <Link
                         href="https://v3x.company/?utm_source=ens-page&utm_campaign=footer"
-                        className="text-ens-light-blue"
+                        className="link"
                         target="_blank"
                     >
                         V3X
@@ -107,11 +113,14 @@ export default async function ({
 
 export async function generateMetadata({
     params: { slug },
+    searchParams: { event, iykRef },
 }: {
     params: { slug: string };
+    searchParams: { event?: string; iykRef?: string };
 }) {
     const raw_name = slug;
     const name = ens_normalize(raw_name.toLowerCase());
+    const theme_color = theme2Color[event] || '#fff';
 
     if (raw_name.toLowerCase() !== name) {
         throw new Error('Invalid ENS name');
@@ -124,5 +133,6 @@ export async function generateMetadata({
         description:
             data.records?.description || `View ${data.name}'s ENS Page`,
         icons: data.avatar,
+        themeColor: theme_color,
     } as Metadata;
 }

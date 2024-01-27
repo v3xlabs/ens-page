@@ -3,6 +3,9 @@ import clsx from 'clsx';
 import { FC, useState } from 'react';
 import { FiCheck, FiLoader } from 'react-icons/fi';
 
+import { mintPOAP } from '../../../hooks/mintPOAP';
+import { IYKRefResponse as IYKReferenceResponse } from '../../../hooks/useIYKRef';
+
 const eth_address_regex = /^0x[\dA-Fa-f]{40}$/;
 
 export const MintToProfile: FC<{
@@ -11,7 +14,17 @@ export const MintToProfile: FC<{
     event_name: string;
     onCallChange: () => void;
     onCallClose: () => void;
-}> = ({ address, poap_name, event_name, onCallChange, onCallClose }) => {
+    iykData: IYKReferenceResponse;
+    onMintToProfileError: (error: unknown) => void;
+}> = ({
+    address,
+    poap_name,
+    event_name,
+    iykData,
+    onCallChange,
+    onCallClose,
+    onMintToProfileError,
+}) => {
     const isAddress = eth_address_regex.test(address);
     const [stage, setStage] = useState<'start' | 'minting' | 'minted'>('start');
 
@@ -26,7 +39,7 @@ export const MintToProfile: FC<{
                         'btn w-full py-3 space-x-2 transition-all',
                         stage === 'minted' && '!bg-ens-light-green-primary'
                     )}
-                    onClick={() => {
+                    onClick={async () => {
                         if (stage === 'minted') {
                             onCallClose();
 
@@ -35,9 +48,21 @@ export const MintToProfile: FC<{
 
                         setStage('minting');
 
-                        setTimeout(() => {
+                        try {
+                            const [data, error] = await mintPOAP(
+                                iykData.poapEvents[0].otp,
+                                address,
+                                iykData.poapEvents[0].poapEventId
+                            );
+
+                            if (error) {
+                                throw error;
+                            }
+
                             setStage('minted');
-                        }, 1000);
+                        } catch (error) {
+                            onMintToProfileError(error);
+                        }
                     }}
                     disabled={stage === 'minting'}
                 >

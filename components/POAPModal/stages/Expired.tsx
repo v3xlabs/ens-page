@@ -8,7 +8,7 @@ export const ExpiredPOAP: FC<{}> = () => {
             <a
                 href="https://iyk.app/admin?utm_source=ens-page&utm_campaign=expired-poap"
                 target="_blank"
-                className="text-ens-light-blue-primary underline"
+                className="link underline"
             >
                 via the IYK Dashboard
             </a>

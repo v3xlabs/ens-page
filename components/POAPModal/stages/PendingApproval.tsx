@@ -5,7 +5,7 @@ export const PendingApproval = () => {
             <a
                 href="https://blog.poap.xyz/guidelines/"
                 target="_blank"
-                className="text-ens-light-blue-primary underline"
+                className="link underline"
             >
                 pending human review
             </a>

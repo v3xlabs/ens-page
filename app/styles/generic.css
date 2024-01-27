@@ -18,4 +18,13 @@ html:has(.theme-generic) {
     .btn-url {
         @apply bg-ens-light-purple-primary hover:bg-ens-light-purple-bright active:bg-ens-light-purple-active;
     }
+    .card-bg {
+        @apply bg-ens-light-background-primary border border-ens-light-border shadow-xl;
+    }
+    .card-body {
+        @apply text-black;
+    }
+    .link {
+        @apply text-ens-light-blue;
+    }
 }

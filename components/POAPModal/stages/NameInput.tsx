@@ -61,9 +61,6 @@ export const NameInput: FC<{
                         disabled={loading}
                     />
                 </div>
-                {/* <button className="px-6 py-2 btn w-fit mx-auto font-bold text-sm">
-                Mint POAP
-            </button> */}
                 <button
                     type="submit"
                     className="p-4 btn w-fit mx-auto font-bold text-sm aspect-square"

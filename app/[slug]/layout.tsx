@@ -1,4 +1,5 @@
 import '../styles/frensday.css';
+import '../styles/ethdenver24.css';
 import '../styles/generic.css';
 
 import React from 'react';
