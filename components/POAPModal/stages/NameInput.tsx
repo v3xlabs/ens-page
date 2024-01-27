@@ -50,6 +50,9 @@ export const NameInput: FC<{
                 <div className="grow">
                     <input
                         type="text"
+                        name="recipient"
+                        autoComplete="off"
+                        autoCorrect="off"
                         className={clsx(
                             'rounded-lg h-full w-full border block px-3',
                             validENS ? 'border-ens-light-blue-primary' : ''

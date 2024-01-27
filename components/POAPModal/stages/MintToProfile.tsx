@@ -5,6 +5,7 @@ import { FiCheck, FiLoader } from 'react-icons/fi';
 
 import { mintPOAP } from '../../../hooks/mintPOAP';
 import { IYKRefResponse as IYKReferenceResponse } from '../../../hooks/useIYKRef';
+import { getTextFromInfo } from '../settings';
 
 const eth_address_regex = /^0x[\dA-Fa-f]{40}$/;
 
@@ -12,6 +13,7 @@ export const MintToProfile: FC<{
     address: string;
     poap_name: string;
     event_name: string;
+    event_slug: string;
     onCallChange: () => void;
     onCallClose: () => void;
     iykData: IYKReferenceResponse;
@@ -19,6 +21,7 @@ export const MintToProfile: FC<{
 }> = ({
     address,
     poap_name,
+    event_slug,
     event_name,
     iykData,
     onCallChange,
@@ -31,7 +34,7 @@ export const MintToProfile: FC<{
     return (
         <div className="space-y-2 w-full">
             <div className="w-full max-w-xs mx-auto">
-                Mint a POAP to show you met {poap_name} at {event_name}!
+                {getTextFromInfo(poap_name, event_slug, event_name)}
             </div>
             <div className="w-full">
                 <button

@@ -119,6 +119,7 @@ export const POAPModal: FC<{
                                 event_name={event_name}
                                 address={mintToProfile}
                                 iykData={data}
+                                event_slug={event}
                                 onCallChange={() => {
                                     setMintToProfile('');
                                     // eslint-disable-next-line no-undef

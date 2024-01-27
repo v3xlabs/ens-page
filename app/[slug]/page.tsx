@@ -120,7 +120,7 @@ export async function generateMetadata({
 }) {
     const raw_name = slug;
     const name = ens_normalize(raw_name.toLowerCase());
-    const theme_color = theme2Color[event] || '#fff';
+    const theme_color = theme2Color[event] || '#F6F6F6';
 
     if (raw_name.toLowerCase() !== name) {
         throw new Error('Invalid ENS name');

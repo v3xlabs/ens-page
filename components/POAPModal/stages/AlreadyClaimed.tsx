@@ -7,7 +7,11 @@ export const AlreadyClaimed: FC<{ to: string }> = ({ to }) => {
             <p>You should see it in your collection</p>
             <a
                 // href={'https://collectors.poap.xyz/token/' + poap_id}
-                href={'https://collectors.poap.xyz/scan/' + to}
+                href={
+                    'https://collectors.poap.xyz/scan/' +
+                    to +
+                    '?utm_source=ens-page'
+                }
                 target="_blank"
                 className="btn w-full p-4"
             >
