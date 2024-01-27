@@ -8,6 +8,7 @@ import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
 import { POAPMetadata } from '../../hooks/usePOAPData';
 import { Creeper } from './Creeper';
 import { SHOW_POAP_ANYWAYS } from './settings';
+import { ExpiredPOAP } from './stages/Expired';
 import { MintToProfile } from './stages/MintToProfile';
 import { NameInput } from './stages/NameInput';
 import { PendingApproval } from './stages/PendingApproval';
@@ -18,6 +19,7 @@ const HIDE_AFTER_TIME = 1000 * 60 * 60 * 24 * 100;
 const PENDING_APPROVAL = 'pending-approval';
 const MINT_TO = 'mint-to';
 const NAME_INPUT = 'name-input';
+const EXPIRED_STATE = 'expired';
 
 const event_names = {
     frensday2023: 'frENSday 2023',
@@ -67,7 +69,11 @@ export const POAPModal: FC<{
     if (pendingApproval) {
         state = PENDING_APPROVAL;
     } else {
-        state = mintToProfile ? MINT_TO : NAME_INPUT;
+        if (poapEvent.status == 'expired') {
+            state = EXPIRED_STATE;
+        } else {
+            state = mintToProfile ? MINT_TO : NAME_INPUT;
+        }
     }
 
     return (
@@ -131,6 +137,7 @@ export const POAPModal: FC<{
                                 event_name={event_name}
                             />
                         )}
+                        {state === EXPIRED_STATE && <ExpiredPOAP />}
                     </div>
                     {/* <div className="pt-2 space-y-2">
                         <div className="w-full max-w-xs mx-auto">
