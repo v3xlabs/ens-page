@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 'use client';
 
 import clsx from 'clsx';
