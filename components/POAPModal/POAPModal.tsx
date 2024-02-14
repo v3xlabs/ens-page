@@ -145,6 +145,7 @@ export const POAPModal: FC<{
                                 }}
                                 poap_name={name}
                                 event_name={event_name}
+                                event_slug={event}
                             />
                         )}
                         {state === EXPIRED_STATE && <ExpiredPOAP />}

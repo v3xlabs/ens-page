@@ -33,13 +33,14 @@ export const MintToProfile: FC<{
 
     return (
         <div className="space-y-2 w-full">
-            <div className="w-full max-w-xs mx-auto">
+            <div className="w-full max-w-xs mx-auto font-bold">
                 {getTextFromInfo(poap_name, event_slug, event_name)}
             </div>
             <div className="w-full">
                 <button
                     className={clsx(
                         'btn w-full py-3 space-x-2 transition-all',
+                        stage === 'minting' && 'minting',
                         stage === 'minted' && '!bg-ens-light-green-primary'
                     )}
                     onClick={async () => {
@@ -70,7 +71,7 @@ export const MintToProfile: FC<{
                     disabled={stage === 'minting'}
                 >
                     {stage === 'start' && 'Mint POAP'}
-                    {stage === 'minting' && 'Minting...'}
+                    {stage === 'minting' && 'Minting POAP'}
                     {stage === 'minted' && 'Minted'}
                     {stage === 'minting' && (
                         <FiLoader className="animate-spin" />

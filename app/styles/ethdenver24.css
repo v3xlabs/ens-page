@@ -1,22 +1,31 @@
 html:has(.theme-ethdenver24) {
     body, html {
-        @apply bg-gradient-to-b from-[#844AFF] to-[#844AFF] text-white;
+        @apply bg-[#888CDC] text-[#1D1C47];
     }
-    /* body:before {
+    body:before {
         content: '';
-        @apply fixed inset-0 -z-10 brightness-75;
+        @apply fixed inset-0 -z-10 opacity-25;
         background: url('/ethdenver24/bg.svg') no-repeat center center;
-    } */
+    }
     .btn {
-        @apply bg-[#FF65AF] hover:bg-[#FF65AF] active:bg-[#FF65AF] text-white;
+        @apply bg-[#1D1C47] hover:brightness-110 active:brightness-125 text-white font-bold;
+    }
+    .btn.minting {
+        @apply !bg-[#0C0B3E] !border-[#3E3D70] !text-[#3E3D70] border;
     }
     .card-bg {
-        @apply bg-[#F8F8F9] shadow-lg;
+        @apply bg-[#0C0B3E] shadow-xl shadow-[#1D1C47];
     }
     .card-body {
-        @apply text-black;
+        @apply text-white;
     }
     .link {
-        @apply text-[#FF65AF];
+        @apply text-ens-light-blue-primary underline;
+    }
+    .card-body .btn {
+        @apply bg-[#3E3D70]
+    }
+    .card-body input {
+        @apply bg-[#3E3D70] border-transparent active:border-ens-light-blue-primary;
     }
 }

@@ -12,5 +12,17 @@ export const EventHeader = ({ event }) => {
         );
     }
 
+    if (event == 'ethdenver2024') {
+        return (
+            <div className="px-6 w-full">
+                <img
+                    src="/ethdenver24/header.svg"
+                    alt="ethdenver"
+                    className="w-full h-auto mx-auto"
+                />
+            </div>
+        );
+    }
+
     return <></>;
 };

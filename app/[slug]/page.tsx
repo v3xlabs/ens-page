@@ -20,7 +20,7 @@ const theme2Class = {
 
 const theme2Color = {
     frensday2023: '#2A2244',
-    ethdenver2024: '#844AFF',
+    ethdenver2024: '#888CDC',
 };
 
 export default async function ({
@@ -73,10 +73,11 @@ export default async function ({
                     </div>
                 </div>
                 <RecordsSection enstate={enstate} farcaster={farcaster} />
-                {event == 'frensday2023' && (
+                {['frensday2023', 'ethdenver2024'].includes(event) && (
                     <XMTPSection
                         address={enstate.address}
                         name={enstate.name}
+                        event={event}
                     />
                 )}
                 {iykData && (

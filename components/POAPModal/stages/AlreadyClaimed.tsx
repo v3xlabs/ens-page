@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { FiExternalLink } from 'react-icons/fi';
 
 export const AlreadyClaimed: FC<{ to: string }> = ({ to }) => {
     return (
@@ -15,7 +16,7 @@ export const AlreadyClaimed: FC<{ to: string }> = ({ to }) => {
                 target="_blank"
                 className="btn w-full p-4"
             >
-                View Collection
+                View Collection <FiExternalLink />
             </a>
         </div>
     );

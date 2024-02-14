@@ -3,6 +3,7 @@ import { FC, useState } from 'react';
 import { FiLoader, FiSearch } from 'react-icons/fi';
 
 import { useEnstate } from '../../../hooks/useEnstate';
+import { getTextFromInfo } from '../settings';
 
 const eth_address_regex = /^0x[\dA-Fa-f]{40}$/;
 
@@ -10,7 +11,8 @@ export const NameInput: FC<{
     onSubmit: (_name: string) => void;
     poap_name: string;
     event_name: string;
-}> = ({ onSubmit, poap_name, event_name }) => {
+    event_slug: string;
+}> = ({ onSubmit, poap_name, event_name, event_slug }) => {
     const [inputData, setInputData] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -18,8 +20,8 @@ export const NameInput: FC<{
 
     return (
         <div className="w-full space-y-2">
-            <div className="w-full max-w-xs mx-auto">
-                Mint a POAP to show you met {poap_name} at {event_name}!
+            <div className="w-full max-w-xs mx-auto font-bold">
+                {getTextFromInfo(poap_name, event_slug, event_name)}
             </div>
             <form
                 className="flex justify-stretch items-stretch gap-3 w-full"
