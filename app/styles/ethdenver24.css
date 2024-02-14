@@ -8,13 +8,13 @@ html:has(.theme-ethdenver24) {
         background: url('/ethdenver24/bg.svg') no-repeat center center;
     }
     .btn {
-        @apply bg-[#1D1C47] hover:brightness-110 active:brightness-125 text-white font-bold;
+        @apply bg-[#1D1C47] hover:bg-[#0C0B3E] active:bg-[#0C0B3E] text-white font-bold;
     }
     .btn.minting {
         @apply !bg-[#0C0B3E] !border-[#3E3D70] !text-[#3E3D70] border;
     }
     .card-bg {
-        @apply bg-[#0C0B3E] shadow-xl shadow-[#1D1C47];
+        @apply bg-[#0C0B3E];
     }
     .card-body {
         @apply text-white;
@@ -23,9 +23,9 @@ html:has(.theme-ethdenver24) {
         @apply text-ens-light-blue-primary underline;
     }
     .card-body .btn {
-        @apply bg-[#3E3D70]
+        @apply bg-[#3E3D70] focus:bg-[#1D1C47] hover:bg-[#1D1C47] active:bg-[#1D1C47];
     }
     .card-body input {
-        @apply bg-[#3E3D70] border-transparent active:border-ens-light-blue-primary;
+        @apply bg-[#3E3D70] border-transparent focus:border-ens-light-blue-primary border-2 outline-ens-light-blue-primary focus:outline-ens-light-blue-primary;
     }
 }
