@@ -31,9 +31,6 @@ export const XMTPSection: FC<{
                 <AButton href={`https://converse.xyz/dm/${name}`}>
                     Message with Converse
                 </AButton>
-                <AButton href={'https://orb.ac/@cryptocornerstore'}>
-                    Message with Orb
-                </AButton>
             </div>
         </div>
     );
