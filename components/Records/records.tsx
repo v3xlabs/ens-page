@@ -26,12 +26,20 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
     }
 
     if (key == 'url') {
-        const { hostname } = new URL(formatted || value);
+        let label = value;
+
+        try {
+            const { hostname } = new URL(formatted || value);
+
+            label = hostname;
+        } catch (error) {
+            console.error('Error parsing URL', error);
+        }
 
         return (
             <AButton href={value} className="btn-url">
                 <FiLink />
-                {hostname}
+                {label}
             </AButton>
         );
     }
