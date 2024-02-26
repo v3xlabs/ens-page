@@ -31,6 +31,10 @@ const event_names = {
 
 const STORAGE_NAME_KEY = 'ens-page-default-mint';
 
+const LocalStorage =
+    // eslint-disable-next-line no-undef
+    typeof window !== 'undefined' ? window.localStorage : undefined;
+
 export const POAPModal: FC<{
     data: IYKReferenceResponse;
     name: string;
@@ -41,7 +45,7 @@ export const POAPModal: FC<{
     const [hasRendered, setHasRendered] = useState(false);
     const [mintToProfile, setMintToProfile] = useState(
         // eslint-disable-next-line no-undef
-        localStorage?.getItem(STORAGE_NAME_KEY) || ''
+        LocalStorage?.getItem(STORAGE_NAME_KEY) || ''
     );
     const [mintToProfileError, setMintToProfileError] = useState<unknown>();
 
@@ -123,7 +127,7 @@ export const POAPModal: FC<{
                                 onCallChange={() => {
                                     setMintToProfile('');
                                     // eslint-disable-next-line no-undef
-                                    localStorage?.setItem(STORAGE_NAME_KEY, '');
+                                    LocalStorage?.setItem(STORAGE_NAME_KEY, '');
                                 }}
                                 onCallClose={() => {
                                     setDismissed(true);
@@ -138,7 +142,7 @@ export const POAPModal: FC<{
                                 onSubmit={(name) => {
                                     setMintToProfile(name);
                                     // eslint-disable-next-line no-undef
-                                    localStorage?.setItem(
+                                    LocalStorage?.setItem(
                                         STORAGE_NAME_KEY,
                                         name
                                     );
