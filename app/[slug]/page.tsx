@@ -106,7 +106,7 @@ export default async function ({
                         V3X
                     </Link>
                 </div>
-                <ClientPlausible event={event} iykData={iykData} slug={slug} />
+                <ClientPlausible event={event} iykData={iykData} />
             </div>
         </div>
     );

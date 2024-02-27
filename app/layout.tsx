@@ -14,20 +14,20 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
+            <head>
+                <script
+                    defer
+                    data-domain="ens.page"
+                    src="https://science.nt3.me/js/script.local.manual.js"
+                ></script>
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: 'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }',
+                    }}
+                />
+            </head>
             <body>{children}</body>
-            <script src="https://v3x.report/please.js" async={true} />
-            <script
-                defer
-                data-domain="ens.page"
-                src="https://science.nt3.me/js/script.local.manual.js"
-            ></script>
-            {/* Plausible array */}
-            <script
-                dangerouslySetInnerHTML={{
-                    __html:
-                        'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }',
-                }}
-            />
+            <script defer src="https://v3x.report/please.js" async={true} />
             {/* <body className="bg-[#2A2244] text-white">{children}</body> */}
         </html>
     );

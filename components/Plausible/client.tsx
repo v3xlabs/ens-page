@@ -1,40 +1,48 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { IYKRefResponse as IYKReferenceResponse } from '../../hooks/useIYKRef';
 
 // Define the types for the props
-interface MyComponentProperties {
-    slug?: string;
+interface Properties {
     event?: string;
     iykData?: IYKReferenceResponse;
 }
 
 // Define the functional component
-const ClientPlausible: React.FC<MyComponentProperties> = ({
-    slug,
-    event,
-    iykData,
-}) => {
-    if (typeof window === 'undefined') {
-        return <></>;
-    }
+const ClientPlausible: React.FC<Properties> = ({ event, iykData }) => {
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
 
-    // @ts-ignore
-    // eslint-disable-next-line no-undef
-    const { plausible } = window;
+        // @ts-ignore
+        // eslint-disable-next-line no-undef
+        const { plausible, location } = window;
 
-    if (iykData.isValidRef && iykData.uid) {
-        // TODO: Actually log the data here please
-        plausible('pageview');
-    }
+        const searchParameters = new URLSearchParams(location.search);
 
-    console.log({
-        slug,
-        event,
-        iykData,
-    });
+        if (iykData?.isValidRef && iykData?.uid) {
+            searchParameters.set('utm_source', 'Scanned ENS Cards');
+            searchParameters.set('utm_term', 'ENS Card - ' + iykData?.uid);
+            searchParameters.delete('iykRef');
+        }
+
+        if (event) {
+            searchParameters.set('utm_campaign', event);
+        }
+
+        plausible('pageview', {
+            u: location.href,
+            props: {
+                ENSCard: iykData?.uid || undefined,
+                event: event || undefined,
+            },
+            // eslint-disable-next-line no-undef
+            r: document.referrer,
+        });
+    }, [event, iykData]);
 
     return <></>;
 };
