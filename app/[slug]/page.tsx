@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { MonsterOverlay } from '../../components/events/frensday/Monsters/Overlay';
 import { EventHeader } from '../../components/Headers/EventHeader';
+import ClientPlausible from '../../components/Plausible/client';
 import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
 import { RecordsSection } from '../../components/Records/records';
 import { XMTPSection } from '../../components/XMTP/section';
@@ -105,6 +106,7 @@ export default async function ({
                         V3X
                     </Link>
                 </div>
+                <ClientPlausible event={event} iykData={iykData} slug={slug} />
             </div>
         </div>
     );

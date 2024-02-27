@@ -19,8 +19,15 @@ export default function RootLayout({
             <script
                 defer
                 data-domain="ens.page"
-                src="https://ens.v3x.report/js/script.js"
+                src="https://science.nt3.me/js/script.local.manual.js"
             ></script>
+            {/* Plausible array */}
+            <script
+                dangerouslySetInnerHTML={{
+                    __html:
+                        'window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }',
+                }}
+            />
             {/* <body className="bg-[#2A2244] text-white">{children}</body> */}
         </html>
     );
