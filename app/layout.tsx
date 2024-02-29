@@ -18,7 +18,7 @@ export default function RootLayout({
                 <script
                     defer
                     data-domain="ens.page"
-                    src="https://ens.v3x.report/js/script.js"
+                    src="https://science.nt3.me/js/script.local.js"
                 ></script>
                 <script
                     dangerouslySetInnerHTML={{

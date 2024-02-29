@@ -16,10 +16,14 @@ const ReportENSCard: React.FC<Properties> = ({ event, iykData }) => {
         // eslint-disable-next-line no-undef
         const { plausible } = window as any;
 
+        if (!iykData.uid) {
+            return;
+        }
+
         plausible('ENS Card', {
             props: {
-                event: event,
-                ENSCard: iykData.uid,
+                event: event || 'No event',
+                ENSCard: '123',
             },
         });
     }, [event, iykData]);
