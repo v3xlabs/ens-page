@@ -23,7 +23,7 @@ const ReportENSCard: React.FC<Properties> = ({ event, iykData }) => {
         plausible('ENS Card', {
             props: {
                 event: event || 'No event',
-                ENSCard: '123',
+                ENSCard: iykData?.uid,
             },
         });
     }, [event, iykData]);
