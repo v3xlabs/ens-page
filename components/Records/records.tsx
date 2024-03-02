@@ -5,8 +5,8 @@ import { FaTelegram } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { FiGithub, FiLink } from 'react-icons/fi';
 import shortNumber from 'short-number';
+import { ProfileResponse } from 'use-enstate';
 
-import { EnstateResponse } from '../../hooks/useEnstate';
 import { WarpcastResponse } from '../../hooks/useWarpcast';
 import { AButton } from '../AButton/button';
 
@@ -77,7 +77,7 @@ const buttonControls = (key: string, value: string): ReactNode | undefined => {
 };
 
 export const RecordsSection: FC<{
-    enstate: EnstateResponse;
+    enstate: ProfileResponse;
     farcaster: WarpcastResponse;
 }> = ({ enstate, farcaster }) => {
     return (

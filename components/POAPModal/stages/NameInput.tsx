@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import { FC, useState } from 'react';
 import { FiLoader, FiSearch } from 'react-icons/fi';
+import { profileFetcher as enstateProfileFetcher } from 'use-enstate/helpers';
 
-import { useEnstate } from '../../../hooks/useEnstate';
 import { getTextFromInfo } from '../settings';
 
 const eth_address_regex = /^0x[\dA-Fa-f]{40}$/;
@@ -37,7 +37,10 @@ export const NameInput: FC<{
                     setLoading(true);
 
                     try {
-                        const data = await useEnstate(inputData);
+                        const data = await enstateProfileFetcher(
+                            'https://enstate.rs',
+                            inputData
+                        );
 
                         if (data) {
                             onSubmit(data.name);

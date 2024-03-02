@@ -3,13 +3,14 @@ import { ens_normalize } from '@adraffy/ens-normalize';
 import clsx from 'clsx';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { profileFetcher as enstateProfileFetcher } from 'use-enstate/helpers';
 
 import { MonsterOverlay } from '../../components/events/frensday/Monsters/Overlay';
+import { GradientAvatar } from '../../components/GradientAvatar';
 import { EventHeader } from '../../components/Headers/EventHeader';
 import { SPOAPModal } from '../../components/POAPModal/SPOAPModal';
 import { RecordsSection } from '../../components/Records/records';
 import { XMTPSection } from '../../components/XMTP/section';
-import { useEnstate } from '../../hooks/useEnstate';
 import { useIYKRef } from '../../hooks/useIYKRef';
 import { useWarpcast } from '../../hooks/useWarpcast';
 
@@ -39,7 +40,7 @@ export default async function ({
     }
 
     const [enstate, farcaster, iykData] = await Promise.all([
-        useEnstate(name),
+        enstateProfileFetcher('https://enstate.rs', name),
         useWarpcast(name),
         useIYKRef(iykRef),
     ]);
@@ -51,11 +52,15 @@ export default async function ({
                 <div className="w-full flex flex-col gap-2 items-center justify-center">
                     <div className="flex items-center relative w-full pt-8 pb-2">
                         <div className="mx-auto w-40 h-40 aspect-square border bg-white rounded-full overflow-hidden">
-                            <img
-                                src={enstate.avatar}
-                                alt="profile"
-                                className="w-full h-full"
-                            />
+                            {enstate.avatar ? (
+                                <img
+                                    src={enstate.avatar}
+                                    alt="profile"
+                                    className="w-full h-full"
+                                />
+                            ) : (
+                                <GradientAvatar name={enstate.name} />
+                            )}
                         </div>
                         {event == 'frensday2023' && (
                             <div className="absolute inset-0">
@@ -127,7 +132,7 @@ export async function generateMetadata({
         throw new Error('Invalid ENS name');
     }
 
-    const data = await useEnstate(name);
+    const data = await enstateProfileFetcher('https://enstate.rs', name);
 
     return {
         title: `${data.name} | ENS Page`,
