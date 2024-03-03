@@ -82,9 +82,10 @@ export const RecordsSection: FC<{
 }> = ({ enstate, farcaster }) => {
     return (
         <div className="flex flex-col gap-4">
-            {enstate?.records && Object.keys(enstate.records)
-                .map((key) => buttonControls(key, enstate.records[key]))
-                .filter(Boolean)}
+            {enstate?.records &&
+                Object.keys(enstate.records)
+                    .map((key) => buttonControls(key, enstate.records[key]))
+                    .filter(Boolean)}
             {farcaster && farcaster.result && (
                 <AButton
                     href={`https://warpcast.com/${farcaster.result.user.username}`}
