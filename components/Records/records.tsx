@@ -82,7 +82,7 @@ export const RecordsSection: FC<{
 }> = ({ enstate, farcaster }) => {
     return (
         <div className="flex flex-col gap-4">
-            {Object.keys(enstate.records)
+            {enstate?.records && Object.keys(enstate.records)
                 .map((key) => buttonControls(key, enstate.records[key]))
                 .filter(Boolean)}
             {farcaster && farcaster.result && (
