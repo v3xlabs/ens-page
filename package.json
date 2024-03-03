@@ -15,6 +15,7 @@
     "dependencies": {
         "@adraffy/ens-normalize": "^1.10.0",
         "@ens-tools/format": "^0.0.2",
+        "@ens-tools/thorin-core": "0.0.3-8",
         "autoprefixer": "^10.4.14",
         "clsx": "^2.0.0",
         "next": "^13.4.10",
