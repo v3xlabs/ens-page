@@ -5,7 +5,10 @@ import { FC, useMemo, useState } from 'react';
 
 import { generateMeshGradientFromName } from './MeshGradient';
 
-export const ProfileAvatar: FC<{ name: string, avatar?: string }> = ({ name, avatar }) => {
+export const ProfileAvatar: FC<{ name: string; avatar?: string }> = ({
+    name,
+    avatar,
+}) => {
     const [failedToLoad, setFailedToLoad] = useState(false);
     const mesh = useMemo(() => generateMeshGradientFromName(name), [name]);
 
