@@ -12,6 +12,7 @@ import { XMTPSection } from '../../components/XMTP/section';
 import { useEnstate } from '../../hooks/useEnstate';
 import { useIYKRef } from '../../hooks/useIYKRef';
 import { useWarpcast } from '../../hooks/useWarpcast';
+import { ProfileAvatar } from '../../components/ProfileAvatar/ProfileAvatar';
 
 const theme2Class = {
     frensday2023: 'theme-frensday2023',
@@ -51,11 +52,7 @@ export default async function ({
                 <div className="w-full flex flex-col gap-2 items-center justify-center">
                     <div className="flex items-center relative w-full pt-8 pb-2">
                         <div className="mx-auto w-40 h-40 aspect-square border bg-white rounded-full overflow-hidden">
-                            <img
-                                src={enstate.avatar}
-                                alt="profile"
-                                className="w-full h-full"
-                            />
+                            <ProfileAvatar name={enstate.name} avatar={enstate.avatar} />
                         </div>
                         {event == 'frensday2023' && (
                             <div className="absolute inset-0">
