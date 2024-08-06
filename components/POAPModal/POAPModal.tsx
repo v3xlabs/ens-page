@@ -108,7 +108,7 @@ export const POAPModal: FC<{
                         </div>
                     </div>
                     <button
-                        className="absolute right-4 text-xl opacity-50"
+                        className="absolute right-4 text-xl opacity-50 p-2 z-20"
                         onClick={() => {
                             setDismissed(true);
                         }}

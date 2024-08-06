@@ -18,12 +18,14 @@ export const usePOAPData = async (
     poapEventId: number
 ): Promise<POAPMetadata | undefined> => {
     try {
-        const request = await fetch(`${POAP_API_HOST}/metadata/${poapEventId}/1`);
+        const request = await fetch(
+            `${POAP_API_HOST}/metadata/${poapEventId}/1`
+        );
 
         if (!request.ok) return;
 
         return await request.json();
-    } catch (erorr) {
-        console.error('Error fetching POAP data', erorr);
+    } catch (error) {
+        console.error('Error fetching POAP data', error);
     }
 };

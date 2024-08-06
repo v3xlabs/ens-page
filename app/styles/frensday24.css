@@ -6,7 +6,7 @@ html:has(.theme-frensday2024) {
         @apply bg-[#E95666] hover:bg-[#d24a5a] active:bg-[#eb5d6e] font-bold text-[#FFF3E8];
     }
     .card-bg {
-        @apply bg-[#14032C];
+        @apply bg-[#FFDBCA];
     }
     .link {
         @apply text-ens-light-blue;
