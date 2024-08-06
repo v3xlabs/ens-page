@@ -1,4 +1,5 @@
-import '../styles/frensday.css';
+import '../styles/frensday23.css';
+import '../styles/frensday24.css';
 import '../styles/ethdenver24.css';
 import '../styles/generic.css';
 

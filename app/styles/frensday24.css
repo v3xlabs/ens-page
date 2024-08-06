@@ -1,0 +1,14 @@
+html:has(.theme-frensday2024) {
+    body {
+        @apply bg-[#FCB3AC] text-[#702F00];
+    }
+    .btn {
+        @apply bg-[#E95666] hover:bg-[#d24a5a] active:bg-[#eb5d6e] font-bold text-[#FFF3E8];
+    }
+    .card-bg {
+        @apply bg-[#14032C];
+    }
+    .link {
+        @apply text-ens-light-blue;
+    }
+}

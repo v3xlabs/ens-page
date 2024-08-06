@@ -1,4 +1,4 @@
-html:has(.theme-ethdenver24) {
+html:has(.theme-ethdenver2024) {
     body, html {
         @apply bg-[#888CDC] text-[#1D1C47];
     }

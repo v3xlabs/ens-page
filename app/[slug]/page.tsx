@@ -16,12 +16,14 @@ import { useWarpcast } from '../../hooks/useWarpcast';
 
 const theme2Class = {
     frensday2023: 'theme-frensday2023',
-    ethdenver2024: 'theme-ethdenver24',
+    ethdenver2024: 'theme-ethdenver2024',
+    frensday2024: 'theme-frensday2024',
 };
 
 const theme2Color = {
     frensday2023: '#2A2244',
     ethdenver2024: '#888CDC',
+    frensday2024: '#FFF3E8',
 };
 
 export default async function ({
