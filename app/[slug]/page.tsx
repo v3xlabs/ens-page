@@ -26,6 +26,16 @@ const theme2Color = {
     frensday2024: '#FFF3E8',
 };
 
+const try_normalize = (name: string) => {
+    const ens_name = decodeURIComponent(name);
+
+    try {
+        return ens_normalize(ens_name.toLowerCase());
+    } catch {
+        return name;
+    }
+};
+
 export default async function ({
     params: { slug },
     searchParams: { event, iykRef },
@@ -34,12 +44,8 @@ export default async function ({
     searchParams: { event?: string; iykRef?: string };
 }) {
     const raw_name = slug;
-    const name = ens_normalize(raw_name.toLowerCase());
+    const name = try_normalize(raw_name);
     const ad_class: string = theme2Class[event] || 'theme-generic';
-
-    if (raw_name.toLowerCase() !== name) {
-        throw new Error('Invalid ENS name');
-    }
 
     const [enstate, farcaster, iykData] = await Promise.all([
         useEnstate(name),
@@ -119,12 +125,8 @@ export async function generateMetadata({
     searchParams: { event?: string; iykRef?: string };
 }) {
     const raw_name = slug;
-    const name = ens_normalize(raw_name.toLowerCase());
+    const name = try_normalize(raw_name);
     const theme_color = theme2Color[event] || '#F6F6F6';
-
-    if (raw_name.toLowerCase() !== name) {
-        throw new Error('Invalid ENS name');
-    }
 
     const data = await useEnstate(name);
 
