@@ -77,14 +77,16 @@ export default async function ({
                         )}
                     </div>
                 </div>
-                <RecordsSection enstate={enstate} farcaster={farcaster} />
-                {['frensday2023', 'ethdenver2024'].includes(event) && (
+                {['frensday2023', 'ethdenver2024', 'frensday2024'].includes(
+                    event
+                ) && (
                     <XMTPSection
                         address={enstate.address}
                         name={enstate.name}
                         event={event}
                     />
                 )}
+                <RecordsSection enstate={enstate} farcaster={farcaster} />
                 {iykData && (
                     <SPOAPModal
                         data={iykData}

@@ -24,5 +24,17 @@ export const EventHeader = ({ event }) => {
         );
     }
 
+    if (event == 'frensday2024') {
+        return (
+            <div className="px-6 w-[80%] mx-auto">
+                <img
+                    src="/frensday-logo.svg"
+                    alt="frensday"
+                    className="w-full h-auto mx-auto"
+                />
+            </div>
+        );
+    }
+
     return <></>;
 };
