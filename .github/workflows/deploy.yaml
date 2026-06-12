@@ -1,4 +1,4 @@
-name: Build App
+name: Build Page
 on:
   push:
     branches:
@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          context: .
-          file: Dockerfile
+          context: ./app
+          file: ./app/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

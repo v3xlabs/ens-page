@@ -4,5 +4,8 @@ default:
 install:
     pnpm install
 
-dev:
-    pnpm dev
+app:
+    cd app && pnpm dev
+
+page:
+    cd page && pnpm dev
