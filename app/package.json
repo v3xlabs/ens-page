@@ -1,18 +1,31 @@
 {
-  "name": "template",
+  "name": "ens-manager-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "lint": "eslint .",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "solid-js": "^1.9.12"
+    "@kobalte/core": "^0.13.11",
+    "@tanstack/solid-query": "^5.101.0",
+    "@tanstack/solid-router": "^1.170.15",
+    "@wagmi/connectors": "^8.0.15",
+    "@wagmi/core": "^3.5.0",
+    "@wagmi/solid": "^0.0.22",
+    "solid-icons": "^1.2.0",
+    "solid-js": "^1.9.12",
+    "tailwindcss": "^4.3.0",
+    "viem": "^2.52.2"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^24.12.3",
+    "eslint": "^9.39.2",
+    "eslint-plugin-v3xlabs": "^1.7.14",
     "typescript": "~6.0.2",
     "vite": "^8.0.12",
     "vite-plugin-solid": "^2.11.12"

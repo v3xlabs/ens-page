@@ -2,7 +2,8 @@ default:
     just --list
 
 install:
-    pnpm install
+    cd app && pnpm install
+    cd page && pnpm install
 
 app:
     cd app && pnpm dev
