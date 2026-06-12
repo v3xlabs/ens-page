@@ -205,6 +205,10 @@ a {
   font-weight: 700;
 }
 
+.input.with-leading-icon {
+  padding-left: 48px;
+}
+
 .input::placeholder {
   color: var(--thorin-text-secondary);
 }
@@ -235,14 +239,20 @@ a {
 
 .icon-button {
   display: grid;
-  min-width: 48px;
-  height: 48px;
   place-items: center;
   border: 1px solid var(--thorin-border);
   border-radius: var(--thorin-radius-button);
   background: var(--thorin-background-primary);
   color: var(--thorin-text-primary);
   cursor: pointer;
+}
+.icon-button:not(.small) {
+  min-width: 48px;
+  height: 48px;
+}
+.icon-button.small {
+  min-width: 32px;
+  height: 32px;
 }
 
 .icon-button:hover {

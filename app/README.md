@@ -1,28 +1,29 @@
-## Usage
+# app.ens.page
+
+A frontend-only Ethereum Name Service manager built with SolidJS, TanStack Router & Query, Kobalte, wagmi, and viem.
+
+## Features
+
+- Search any ENS name (search bar or Cmd+K) and inspect its profile, text records, multi-chain addresses, resolver, and registry.
+- Edit text records for names you own — changes are batched into a single resolver `multicall` transaction.
+- Track owned names (visited or fetched from the ENS subgraph) with expiry badges, and bulk-renew them.
+- EIP-5792 (`wallet_getCapabilities`) batch-transaction detection.
+
+## Development
 
 ```bash
-$ npm install # or pnpm install or yarn install
+pnpm install
+pnpm dev      # start dev server on http://localhost:5173
+pnpm lint     # eslint
+pnpm build    # typecheck + production build
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+## Structure
 
-## Available Scripts
+- `src/pages/` — one file per route (`/`, `/names`, `/settings`, `/$name`, `/$name/edit`)
+- `src/components/` — UI components (navbar, search, dialogs, renewal cart)
+- `src/hooks/` — TanStack Query wrappers around viem ENS actions, plus persisted client-side stores
+- `src/utils/` — pure helpers (normalization, record definitions, calldata preparation, storage)
+- `src/config.ts` — wagmi chain and transport configuration
 
-In the project directory, you can run:
-
-### `npm run dev`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
-
-### `npm run build`
-
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-## Deployment
-
-Learn more about deploying your application with the [documentations](https://vite.dev/guide/static-deploy.html)
+See `docs/transaction-ux.md` for the transaction flow design.

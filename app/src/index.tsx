@@ -9,6 +9,9 @@ import { App } from "./App.tsx";
 import { wagmiConfig } from "./config.ts";
 
 const root = document.querySelector("#root");
+
+if (!root) throw new Error("Missing #root element");
+
 const queryClient = new QueryClient();
 
 render(
@@ -19,5 +22,5 @@ render(
       </WagmiProvider>
     </QueryClientProvider>
   ),
-  root!,
+  root,
 );

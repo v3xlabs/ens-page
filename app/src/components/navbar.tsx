@@ -1,6 +1,6 @@
 import { Dialog } from "@kobalte/core/dialog";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
-import { Link } from "@tanstack/solid-router";
+import { Link, useNavigate } from "@tanstack/solid-router";
 import {
   type Connector,
   useConnect,
@@ -18,16 +18,13 @@ import {
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import type { Address } from "viem";
 
-import { shortenAddress } from "../config";
-import { useEnsAvatar, useEnsName } from "../hooks";
+import { useEnsAvatar } from "../hooks/useEnsAvatar";
+import { useEnsName } from "../hooks/useEnsName";
+import { shortenAddress } from "../utils/ens";
 import { ChainSelector } from "./chain-selector";
 
-type NavbarProperties = {
-  navigate: (to: "/$name" | "/names" | "/settings", parameters?: { name: string; }) => void;
-};
-
-export const Navbar = (properties: NavbarProperties) => {
-  const [theme, setTheme] = createSignal<"light" | "dark">(getInitialTheme());
+export const Navbar = () => {
+  const [theme, setTheme] = createSignal<"dark" | "light">(getInitialTheme());
   const [error, setError] = createSignal("");
   const [connectOpen, setConnectOpen] = createSignal(false);
   const [connectingConnector, setConnectingConnector] = createSignal("");
@@ -37,7 +34,7 @@ export const Navbar = (properties: NavbarProperties) => {
   const disconnectMutation = useDisconnect();
   const connectedAddress = createMemo(() => connection().address);
   const profileName = useEnsName(connectedAddress);
-  const profileAvatar = useEnsAvatar(() => profileName.data);
+  const profileAvatar = useEnsAvatar(() => profileName.data?.name);
 
   createEffect(() => {
     const nextTheme = theme();
@@ -106,10 +103,9 @@ export const Navbar = (properties: NavbarProperties) => {
             {address => (
               <ProfileDropdown
                 address={address()}
-                avatar={profileAvatar.data}
+                avatar={profileAvatar.data?.avatar}
                 disconnectWallet={disconnectWallet}
-                name={profileName.data}
-                navigate={properties.navigate}
+                name={profileName.data?.name}
               />
             )}
           </Show>
@@ -127,16 +123,16 @@ type ProfileDropdownProperties = {
   address: Address;
   avatar?: string;
   disconnectWallet: () => Promise<void>;
-  navigate: (to: "/$name" | "/names" | "/settings", parameters?: { name: string; }) => void;
   name?: string;
 };
 
 const ProfileDropdown = (properties: ProfileDropdownProperties) => {
+  const navigate = useNavigate();
   const label = createMemo(() => properties.name ?? shortenAddress(properties.address));
 
   return (
     <DropdownMenu placement="bottom-end" gutter={8}>
-      <DropdownMenu.Trigger class="profile-trigger" type="button">
+      <DropdownMenu.Trigger class="profile-trigger" data-testid="wallet-profile" type="button">
         <Avatar avatar={properties.avatar} label={label()} />
         <span class="max-w-36 truncate font-bold">{label()}</span>
         <TbOutlineChevronDown size={16} aria-hidden="true" />
@@ -145,15 +141,18 @@ const ProfileDropdown = (properties: ProfileDropdownProperties) => {
         <DropdownMenu.Content class="dropdown-content">
           <Show when={properties.name}>
             {name => (
-              <DropdownMenu.Item class="dropdown-item" onSelect={() => properties.navigate("/$name", { name: name() })}>
+              <DropdownMenu.Item
+                class="dropdown-item"
+                onSelect={() => void navigate({ params: { name: name() }, to: "/$name" })}
+              >
                 My Profile
               </DropdownMenu.Item>
             )}
           </Show>
-          <DropdownMenu.Item class="dropdown-item" onSelect={() => properties.navigate("/names")}>
+          <DropdownMenu.Item class="dropdown-item" onSelect={() => void navigate({ to: "/names" })}>
             My names
           </DropdownMenu.Item>
-          <DropdownMenu.Item class="dropdown-item" onSelect={() => properties.navigate("/settings")}>
+          <DropdownMenu.Item class="dropdown-item" onSelect={() => void navigate({ to: "/settings" })}>
             Settings
           </DropdownMenu.Item>
           <DropdownMenu.Separator class="dropdown-separator" />
@@ -189,7 +188,7 @@ type ConnectWalletDialogProperties = {
 
 const ConnectWalletDialog = (properties: ConnectWalletDialogProperties) => (
   <Dialog open={properties.open} onOpenChange={properties.setOpen}>
-    <Dialog.Trigger class="button primary" type="button">
+    <Dialog.Trigger class="button primary" data-testid="connect-wallet" type="button">
       <TbOutlineWallet size={18} aria-hidden="true" />
       Connect wallet
     </Dialog.Trigger>
@@ -206,17 +205,18 @@ const ConnectWalletDialog = (properties: ConnectWalletDialogProperties) => (
                 Choose an available connector to continue.
               </Dialog.Description>
             </div>
-            <Dialog.CloseButton class="icon-button" type="button" aria-label="Close wallet connector modal">
+            <Dialog.CloseButton class="icon-button small" type="button" aria-label="Close wallet connector modal">
               <TbOutlineX size={20} aria-hidden="true" />
             </Dialog.CloseButton>
           </div>
 
           <div class="mt-6 grid gap-3">
             <Show when={properties.connectors.length > 0} fallback={<p class="rounded-button border border-border bg-background-secondary p-4 text-text-secondary">No wallet connectors are available in this browser.</p>}>
-              <For each={properties.connectors}>
+              <For each={properties.connectors.toSorted((a, b) => a.name.localeCompare(b.name))}>
                 {connector => (
                   <button
                     class="connector-button"
+                    data-testid={`connector-${connector["id"]}`}
                     type="button"
                     disabled={Boolean(properties.connectingConnector)}
                     onClick={() => properties.connectWallet(connector)}
@@ -243,7 +243,7 @@ const ConnectWalletDialog = (properties: ConnectWalletDialogProperties) => (
   </Dialog>
 );
 
-const getInitialTheme = (): "light" | "dark" => {
+const getInitialTheme = (): "dark" | "light" => {
   const stored = localStorage.getItem("theme");
 
   if (stored === "light" || stored === "dark") return stored;
