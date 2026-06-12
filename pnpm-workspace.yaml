@@ -1,6 +1,0 @@
-auto-install-peers: false
-ignore-scripts: true
-
-packages:
-  - app
-  - page
