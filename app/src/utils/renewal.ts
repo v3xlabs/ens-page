@@ -44,6 +44,23 @@ export type RenewalQuote = {
   totalWei: bigint;
 };
 
+export type RenewalTierGroup<Tier extends string> = {
+  names: string[];
+  tier: Tier;
+};
+
+// UltraBulk takes a single per-name price, so a mixed-tier selection becomes
+// one group (and one transaction) per tier, ordered by the given tier order.
+export const groupNamesByTier = <Tier extends string>(
+  items: Array<{ name: string; tier: Tier; }>,
+  tierOrder: readonly Tier[],
+): Array<RenewalTierGroup<Tier>> => tierOrder
+  .map(tier => ({
+    names: items.filter(item => item.tier === tier).map(item => item.name),
+    tier,
+  }))
+  .filter(group => group.names.length > 0);
+
 // UltraBulk calls controller.renew{value: price} per name and requires
 // msg.value to be STRICTLY greater than price * names.length, hence the +1 wei.
 // Any excess beyond rentPrice is kept by the contract, so price stays exact.

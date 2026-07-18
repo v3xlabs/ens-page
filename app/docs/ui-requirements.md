@@ -57,6 +57,33 @@ The e2e suite locates elements exclusively through these `data-testid` values. U
 | `cart-review` | Cart "Review & Renew" button |
 | `cart-clear` | Cart "Clear" button |
 | `tx-modal` | Transaction modal content |
+| `tx-summary` | Persistent summary block in the transaction modal (what is being approved) |
+| `tx-fee` | Estimated-network-fee row inside the summary block |
 | `tx-confirm` | Modal "Confirm" button (preview step) |
 | `tx-done` | Modal "Done" close button (success/error step) |
-| `tx-hash` | Modal transaction-hash link |
+| `tx-hash` | Modal transaction-hash link (first hash when a sequence produced several) |
+| `tab-names` / `tab-pools` / `tab-activity` | Hub segmented-tab links |
+| `names-pager` | Pagination footer on the names list |
+| `checkout-panel` | Sticky selection checkout panel |
+| `checkout-breakdown` | Per-tier cost breakdown block in the panel |
+| `checkout-add-name` | "Add any name" input in the panel |
+| `checkout-pool-from-selection` | "Pool these names" secondary action |
+| `pool-create` | Create-pool button on the pools tab |
+| `pool-create-label` / `pool-create-submit` | Label input and submit in the create-pool card |
+| `pool-card-<poolId>` | A pool card in the pools grid |
+| `pool-pending` | Pending (forecast) card in pool detail |
+| `pool-inflows` | Inflows card in pool detail |
+| `pool-fund` / `pool-withdraw` | Funding actions in the pool detail header |
+| `pool-funding-amount` | Amount input inside the funding modal |
+| `pool-config-edit` / `pool-config-save` | Pool configuration edit toggle and save |
+| `pool-config-duration` / `pool-config-gas` / `pool-config-premium` | Pool configuration number inputs |
+| `pool-config-window` | Renewal-window slider (`input[type=range]`, stops 10/20/30/60/90/180/365 days; value is the stop index) |
+| `pool-label-edit` / `pool-label-input` / `pool-label-save` | Inline editor for the pool's private label note |
+| `pool-names-edit` | Opens the pool names editor dialog |
+| `pool-names-input` | Name search input inside the names editor |
+| `pool-names-remove-<name>` | Removes a name from the editor draft |
+| `pool-names-review` | "Review changes" button in the names editor |
+| `edit-records` | "Edit records" button on `/$name` |
+| `record-input-<key>` | A record input on `/$name/edit` (e.g. `record-input-description`) |
+| `edit-save` / `edit-reset` | Save and reset actions on `/$name/edit` |
+| `activity-flow-<activityId>` | An in-progress flow card on the activity page |

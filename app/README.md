@@ -20,7 +20,8 @@ pnpm build    # typecheck + production build
 
 ## Structure
 
-- `src/pages/` — one file per route (`/`, `/names`, `/settings`, `/$name`, `/$name/edit`)
+- `src/routes/` — file-path route definitions and the generated route tree
+- `src/pages/` — page content used by the route definitions
 - `src/components/` — UI components (navbar, search, dialogs, renewal cart)
 - `src/hooks/` — TanStack Query wrappers around viem ENS actions, plus persisted client-side stores
 - `src/utils/` — pure helpers (normalization, record definitions, calldata preparation, storage)

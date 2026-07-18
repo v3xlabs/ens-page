@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/solid-router";
+import { createFileRoute, Link } from "@tanstack/solid-router";
 import { For, Show } from "solid-js";
 
+import { Page } from "../components/page";
 import { SearchBar } from "../components/search-bar";
 import { useSearchCache } from "../hooks/useSearchCache";
 
@@ -11,7 +12,7 @@ export const HomePage = () => {
   const recentNames = () => cache().slice(0, RECENT_NAMES_LIMIT);
 
   return (
-    <section class="mx-auto w-full max-w-2xl py-12 text-center sm:py-24">
+    <section class="py-12 text-center sm:py-24">
       <span class="tag blue">Ethereum Name Service</span>
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
         Find and manage ENS names.
@@ -43,3 +44,7 @@ export const HomePage = () => {
     </section>
   );
 };
+
+export const Route = createFileRoute("/")({
+  component: () => <Page width="narrow"><HomePage /></Page>,
+});

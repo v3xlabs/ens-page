@@ -1,22 +1,25 @@
 import { useQueryClient } from "@tanstack/solid-query";
-import { Link, useParams } from "@tanstack/solid-router";
+import { createFileRoute, Link } from "@tanstack/solid-router";
 import { TbOutlineArrowLeft } from "solid-icons/tb";
 import { createMemo, createSignal, For, Show, Suspense } from "solid-js";
 
-import { TransactionModal } from "../components/transaction-modal";
-import { useCanEditName } from "../hooks/useCanEditName";
-import { useEnsRegistry } from "../hooks/useEnsRegistry";
-import { type EnsTextRecord, useEnsTexts } from "../hooks/useEnsTexts";
-import { useTransaction } from "../hooks/useTransaction";
-import { normalizeName, prepareSetTexts } from "../utils/ens";
-import { defaultTextRecords } from "../utils/records";
+import { Page } from "../../components/page";
+import { TransactionModal, type TransactionSummaryRow } from "../../components/transaction-modal";
+import { useCanEditName } from "../../hooks/useCanEditName";
+import { useEnsRegistry } from "../../hooks/useEnsRegistry";
+import { type EnsTextRecord, useEnsTexts } from "../../hooks/useEnsTexts";
+import { useTransaction } from "../../hooks/useTransaction";
+import { normalizeName, prepareSetTexts, shortenAddress, type TextRecordChange } from "../../utils/ens";
+import { defaultTextRecords } from "../../utils/records";
 
 const profileFields = defaultTextRecords.filter(record => !record.key.includes("."));
 const socialFields = defaultTextRecords.filter(record => record.key.includes("."));
 
+const recordLabel = (key: string) => defaultTextRecords.find(record => record.key === key)?.label ?? key;
+
 export const EditPage = () => {
-  const params = useParams({ strict: false });
-  const name = createMemo(() => normalizeName(params()["name"] ?? ""));
+  const params = Route.useParams();
+  const name = createMemo(() => normalizeName(params().name));
   const registry = useEnsRegistry(name);
   const texts = useEnsTexts(name);
   const canEditQuery = useCanEditName(name);
@@ -25,6 +28,10 @@ export const EditPage = () => {
 
   const [drafts, setDrafts] = createSignal<Record<string, string>>({});
   const [showModal, setShowModal] = createSignal(false);
+  // Captured when review opens so the modal keeps describing what was
+  // approved after a success clears the drafts.
+  const [reviewChanges, setReviewChanges] = createSignal<TextRecordChange[]>([]);
+  const [reviewSummary, setReviewSummary] = createSignal<TransactionSummaryRow[]>([]);
 
   const canEdit = createMemo(() => canEditQuery.data === true);
 
@@ -41,6 +48,15 @@ export const EditPage = () => {
   const handleReview = () => {
     if (!canSave()) return;
 
+    const resolver = registry.data?.resolver;
+    const pendingChanges = changes();
+
+    setReviewChanges(pendingChanges);
+    setReviewSummary([
+      { label: "Name", value: name() },
+      { label: "Records changed", value: String(pendingChanges.length) },
+      ...(resolver ? [{ label: "Resolver", value: shortenAddress(resolver) }] : []),
+    ]);
     transaction.preview();
     setShowModal(true);
   };
@@ -125,6 +141,7 @@ export const EditPage = () => {
                 <div class="flex gap-2">
                   <button
                     class="button subtle"
+                    data-testid="edit-reset"
                     disabled={changes().length === 0}
                     onClick={() => setDrafts({})}
                     type="button"
@@ -133,6 +150,7 @@ export const EditPage = () => {
                   </button>
                   <button
                     class="button primary"
+                    data-testid="edit-save"
                     disabled={!canSave()}
                     onClick={handleReview}
                     type="button"
@@ -149,8 +167,22 @@ export const EditPage = () => {
             onClose={handleClose}
             onConfirm={() => void handleConfirm()}
             state={transaction.state()}
+            summary={reviewSummary()}
             title={`Update ${nameValue()}`}
-          />
+          >
+            <div class="mt-4 space-y-1.5">
+              <For each={reviewChanges()}>
+                {change => (
+                  <div class="flex items-baseline justify-between gap-4 text-sm">
+                    <span class="shrink-0 font-bold">{recordLabel(change.key)}</span>
+                    <span class="min-w-0 truncate text-right text-text-secondary">
+                      {change.value || "(cleared)"}
+                    </span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </TransactionModal>
         </section>
       )}
     </Show>
@@ -177,6 +209,7 @@ const RecordFieldGroup = (properties: RecordFieldGroupProperties) => (
             </label>
             <input
               class="w-full rounded-button border border-border bg-background-secondary px-4 py-3 text-text-primary placeholder:text-text-secondary disabled:opacity-60"
+              data-testid={`record-input-${field.key}`}
               disabled={properties.disabled}
               id={`record-${field.key}`}
               onInput={event => properties.onEdit(field.key, event.currentTarget.value)}
@@ -189,3 +222,7 @@ const RecordFieldGroup = (properties: RecordFieldGroupProperties) => (
     </div>
   </div>
 );
+
+export const Route = createFileRoute("/$name/edit")({
+  component: () => <Page width="narrow"><EditPage /></Page>,
+});

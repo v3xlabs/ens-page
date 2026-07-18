@@ -15,13 +15,14 @@ import {
   TbOutlineWallet,
   TbOutlineX,
 } from "solid-icons/tb";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, ErrorBoundary, For, Show, Suspense } from "solid-js";
 import type { Address } from "viem";
 
-import { useEnsAvatar } from "../hooks/useEnsAvatar";
-import { useEnsName } from "../hooks/useEnsName";
-import { shortenAddress } from "../utils/ens";
-import { ChainSelector } from "./chain-selector";
+import { useEnsAvatar } from "../../hooks/useEnsAvatar";
+import { useEnsName } from "../../hooks/useEnsName";
+import { shortenAddress } from "../../utils/ens";
+import { ChainSelector } from "../chain-selector";
+import { HubTabs } from "./hub-tabs";
 
 export const Navbar = () => {
   const [theme, setTheme] = createSignal<"dark" | "light">(getInitialTheme());
@@ -66,14 +67,12 @@ export const Navbar = () => {
 
   return (
     <>
-      <header class="flex flex-col gap-4 rounded-card sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Link to="/" class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+      <header class="flex flex-col gap-4 rounded-card sm:flex-row sm:items-center sm:justify-between px-4 py-2">
+        <div class="flex items-center gap-4">
+          <Link to="/" class="text-xl font-bold tracking-tight text-text-primary">
             app.ens.page
           </Link>
-          <p class="mt-1 text-sm font-bold text-text-secondary">
-            Manage names from the browser
-          </p>
+          <HubTabs />
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -101,12 +100,16 @@ export const Navbar = () => {
             )}
           >
             {address => (
-              <ProfileDropdown
-                address={address()}
-                avatar={profileAvatar.data?.avatar}
-                disconnectWallet={disconnectWallet}
-                name={profileName.data?.name}
-              />
+              <ErrorBoundary fallback={<ProfileDropdown address={address()} disconnectWallet={disconnectWallet} />}>
+                <Suspense fallback={<ProfileDropdown address={address()} disconnectWallet={disconnectWallet} />}>
+                  <ProfileDropdown
+                    address={address()}
+                    avatar={profileAvatar.data?.avatar}
+                    disconnectWallet={disconnectWallet}
+                    name={profileName.data?.name}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             )}
           </Show>
         </div>

@@ -71,10 +71,10 @@ const installWalletMock = async (page: Page, fixtures: OnChainFixtures) => {
 };
 
 const seedLocalStorage = async (page: Page, fixtures: OnChainFixtures) => {
-  const { expired, grace, soon } = fixtures.names;
+  const { expired, grace, records, soon } = fixtures.names;
 
   const ownedNames = {
-    [fixtures.testAddress.toLowerCase()]: [soon, grace, expired].map(entry => ({
+    [fixtures.testAddress.toLowerCase()]: [soon, grace, expired, records].map(entry => ({
       expiryDate: entry.expirySeconds,
       name: entry.name,
     })),

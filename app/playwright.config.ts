@@ -12,7 +12,7 @@ export default defineConfig({
   use: { baseURL: "http://localhost:5177" },
   webServer: {
     command: "pnpm dev --port 5177",
-    env: { VITE_MAINNET_RPC_URL: "http://127.0.0.1:8545/1" },
+    env: { VITE_MAINNET_RPC_URL: "http://127.0.0.1:8547/1" },
     reuseExistingServer: false,
     timeout: 120_000,
     url: "http://localhost:5177",

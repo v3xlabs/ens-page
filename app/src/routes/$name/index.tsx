@@ -1,27 +1,28 @@
-import { useNavigate, useParams } from "@tanstack/solid-router";
+import { createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { useConnection } from "@wagmi/solid";
 import { TbOutlineCopy, TbOutlinePencil } from "solid-icons/tb";
 import { createEffect, createMemo, For, Show, Suspense } from "solid-js";
 
-import { ProfileAddress, ProfileAvatar, ProfileBanner, ProfileDetails } from "../components/profile";
-import { useCanEditName } from "../hooks/useCanEditName";
-import { useEnsAddress } from "../hooks/useEnsAddress";
-import { useEnsAddresses } from "../hooks/useEnsAddresses";
-import { useEnsRegistry } from "../hooks/useEnsRegistry";
-import { useEnsTexts } from "../hooks/useEnsTexts";
-import { useOwnedNames } from "../hooks/useOwnedNames";
-import { useSearchCache } from "../hooks/useSearchCache";
-import { normalizeName } from "../utils/ens";
-import { profileKeys, socialKeys } from "../utils/social";
+import { Page } from "../../components/page";
+import { ProfileAddress, ProfileAvatar, ProfileBanner, ProfileDetails } from "../../components/profile";
+import { useCanEditName } from "../../hooks/useCanEditName";
+import { useEnsAddress } from "../../hooks/useEnsAddress";
+import { useEnsAddresses } from "../../hooks/useEnsAddresses";
+import { useEnsRegistry } from "../../hooks/useEnsRegistry";
+import { useEnsTexts } from "../../hooks/useEnsTexts";
+import { useOwnedNames } from "../../hooks/useOwnedNames";
+import { useSearchCache } from "../../hooks/useSearchCache";
+import { normalizeName } from "../../utils/ens";
+import { profileKeys, socialKeys } from "../../utils/social";
 
 const copyToClipboard = (value: string) => {
   void navigator.clipboard.writeText(value);
 };
 
 export const NamePage = () => {
-  const params = useParams({ strict: false });
+  const params = Route.useParams();
   const navigate = useNavigate();
-  const name = createMemo(() => normalizeName(params()["name"] ?? ""));
+  const name = createMemo(() => normalizeName(params().name));
   const connection = useConnection();
   const connectedAddress = createMemo(() => connection().address);
   const ensAddress = useEnsAddress(name);
@@ -50,13 +51,23 @@ export const NamePage = () => {
   return (
     <Show when={name()} fallback={<p class="text-text-secondary">This route is not a valid ENS name.</p>}>
       {nameValue => (
-        <section
-          classList={{
-            "grid gap-6": true,
-            "lg:grid-cols-[minmax(0,720px)_auto]": canEdit.data === true,
-            "mx-auto w-full max-w-3xl": canEdit.data !== true,
-          }}
-        >
+        <section class="grid w-full gap-6">
+          <div class="flex w-full items-center justify-between">
+            <div />
+            <Show when={canEdit.data}>
+              <aside class="flex justify-end space-y-6">
+                <button
+                  class="button primary"
+                  data-testid="edit-records"
+                  onClick={() => void navigate({ params: { name: nameValue() }, to: "/$name/edit" })}
+                  type="button"
+                >
+                  <TbOutlinePencil class="mr-2 inline-block size-4" />
+                  Edit records
+                </button>
+              </aside>
+            </Show>
+          </div>
           <div class="min-w-0 space-y-6">
             <div class="card overflow-hidden">
               <Suspense fallback={<SkeletonBar class="h-48 w-full" />}>
@@ -105,26 +116,6 @@ export const NamePage = () => {
               <InfrastructureCard name={nameValue()} />
             </Suspense>
           </div>
-
-          <Show when={canEdit.data}>
-            <aside class="w-full grow space-y-6">
-              <div class="card p-5 sm:p-6">
-                <span class="tag green">Actions</span>
-                <h3 class="mt-4 text-xl font-bold">Management</h3>
-                <p class="mt-2 text-text-secondary">This wallet can edit this name's records.</p>
-                <div class="mt-5 grid gap-3">
-                  <button
-                    class="button primary"
-                    onClick={() => void navigate({ params: { name: nameValue() }, to: "/$name/edit" })}
-                    type="button"
-                  >
-                    <TbOutlinePencil class="mr-2 inline-block size-4" />
-                    Edit records
-                  </button>
-                </div>
-              </div>
-            </aside>
-          </Show>
         </section>
       )}
     </Show>
@@ -234,3 +225,7 @@ const RecordRow = (properties: RecordRowProperties) => (
     </Show>
   </div>
 );
+
+export const Route = createFileRoute("/$name/")({
+  component: () => <Page width="wide"><NamePage /></Page>,
+});

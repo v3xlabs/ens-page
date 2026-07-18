@@ -1,5 +1,7 @@
+import { createFileRoute } from "@tanstack/solid-router";
 import { Show } from "solid-js";
 
+import { Page } from "../components/page";
 import { useSearchCache } from "../hooks/useSearchCache";
 import { useSettings } from "../hooks/useSettings";
 
@@ -65,3 +67,7 @@ export const SettingsPage = () => {
     </section>
   );
 };
+
+export const Route = createFileRoute("/settings")({
+  component: () => <Page width="narrow"><SettingsPage /></Page>,
+});

@@ -6,6 +6,13 @@ export const ensRegistryAddress = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
 
 export const ensRegistryAbi = parseAbi([
   "function owner(bytes32 node) view returns (address)",
+  "function setResolver(bytes32 node, address resolver)",
+]);
+
+export const publicResolverAddress = "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63";
+
+export const publicResolverAbi = parseAbi([
+  "function text(bytes32 node, string key) view returns (string)",
 ]);
 
 export const oldEthControllerAddress = "0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5";

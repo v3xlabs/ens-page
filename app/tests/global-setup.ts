@@ -1,14 +1,20 @@
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { Instance, Server } from "prool";
-import { parseEther, toHex } from "viem";
+import { type Abi, type Address, type Hex, namehash, parseAbi, parseEther, toHex } from "viem";
 import { mainnet } from "viem/chains";
 
-import { createForkClient, type ForkClient } from "./anvil";
+import { createForkClient, type ForkClient, forkRpcPort } from "./anvil";
 import {
   baseRegistrarAbi,
   baseRegistrarAddress,
+  ensRegistryAbi,
+  ensRegistryAddress,
   expiryStorageSlot,
   labelToTokenId,
   oldEthControllerAddress,
+  publicResolverAddress,
   testAccountAddress,
 } from "./ens";
 import { type NameFixture, writeFixtures } from "./fixtures-file";
@@ -92,12 +98,126 @@ const createNameFixture = async (
   return { expirySeconds: Number(expiry), label, name: `${label}.eth` };
 };
 
+type ContractArtifact = {
+  abi: Abi;
+  bytecode: Hex;
+};
+
+const readArtifact = (relativePath: string): ContractArtifact => {
+  const artifactPath = fileURLToPath(new URL(`../../contracts/out/${relativePath}`, import.meta.url));
+  const raw: unknown = JSON.parse(readFileSync(artifactPath, "utf8"));
+
+  if (typeof raw !== "object" || raw === null || !("abi" in raw) || !("bytecode" in raw)) {
+    throw new Error(`Malformed foundry artifact at ${relativePath}`);
+  }
+
+  const { bytecode } = raw as { bytecode: unknown; };
+
+  if (
+    typeof bytecode !== "object"
+    || bytecode === null
+    || !("object" in bytecode)
+    || typeof bytecode.object !== "string"
+    || !bytecode.object.startsWith("0x")
+  ) {
+    throw new Error(`Foundry artifact ${relativePath} has no deployable bytecode — run \`forge build\` in contracts/`);
+  }
+
+  return { abi: (raw as { abi: Abi; }).abi, bytecode: bytecode.object as Hex };
+};
+
+const deployContract = async (
+  client: ForkClient,
+  artifact: ContractArtifact,
+  args: readonly unknown[],
+): Promise<Address> => {
+  const hash = await client.deployContract({
+    abi: artifact.abi,
+    account: testAccountAddress,
+    args,
+    bytecode: artifact.bytecode,
+    chain: mainnet,
+  });
+
+  const receipt = await client.waitForTransactionReceipt({ hash });
+
+  if (!receipt.contractAddress) {
+    throw new Error("Contract deployment produced no address");
+  }
+
+  return receipt.contractAddress;
+};
+
+const oneYearSeconds = 31_536_000n;
+
+const factoryAdminAbi = parseAbi([
+  "function setProtocolContracts(address ultraBulk, address baseRegistrar)",
+  "function setDurationAllowed(uint256 duration, bool allowed)",
+]);
+
+// Mirrors the `just fork` recipe: UltraBulk + RenewalPoolFactory wired to the
+// old controller and base registrar, with 1-year renewals allowed.
+const deployPoolContracts = async (client: ForkClient): Promise<Address> => {
+  const ultraBulk = await deployContract(
+    client,
+    readArtifact("UltraBulk.sol/UltraBulk.json"),
+    [oldEthControllerAddress],
+  );
+
+  const factory = await deployContract(
+    client,
+    readArtifact("RenewalPoolFactory.sol/RenewalPoolFactory.json"),
+    [testAccountAddress],
+  );
+
+  const wireHash = await client.writeContract({
+    abi: factoryAdminAbi,
+    account: testAccountAddress,
+    address: factory,
+    args: [ultraBulk, baseRegistrarAddress],
+    chain: mainnet,
+    functionName: "setProtocolContracts",
+  });
+
+  await client.waitForTransactionReceipt({ hash: wireHash });
+
+  const durationHash = await client.writeContract({
+    abi: factoryAdminAbi,
+    account: testAccountAddress,
+    address: factory,
+    args: [oneYearSeconds, true],
+    chain: mainnet,
+    functionName: "setDurationAllowed",
+  });
+
+  await client.waitForTransactionReceipt({ hash: durationHash });
+
+  return factory;
+};
+
+const setNameResolver = async (client: ForkClient, name: string, resolver: Address) => {
+  const hash = await client.writeContract({
+    abi: ensRegistryAbi,
+    account: testAccountAddress,
+    address: ensRegistryAddress,
+    args: [namehash(name), resolver],
+    chain: mainnet,
+    functionName: "setResolver",
+  });
+
+  await client.waitForTransactionReceipt({ hash });
+};
+
+// Vite loads .env.development.local with higher priority than the developer's
+// .env.local, so the app under test sees the factory deployed on this fork.
+const testEnvPath = fileURLToPath(new URL("../.env.development.local", import.meta.url));
+
 const globalSetup = async () => {
   const forkUrl = process.env["TEST_FORK_RPC_URL"] ?? "https://ethereum.reth.rs/rpc";
   const server = Server.create({
     instance: Instance.anvil({ forkUrl }),
     limit: 1,
-    port: 8545,
+    port: forkRpcPort,
   });
 
   await server.start();
@@ -125,9 +245,22 @@ const globalSetup = async () => {
     nowSeconds - 150n * daySeconds,
   );
 
-  writeFixtures({ names: { expired, grace, soon }, testAddress: testAccountAddress });
+  const records = await createNameFixture(client, "ens-page-test-records", 365n * daySeconds);
+
+  await setNameResolver(client, records.name, publicResolverAddress);
+
+  const poolFactoryAddress = await deployPoolContracts(client);
+
+  writeFileSync(testEnvPath, `VITE_RENEWAL_POOL_FACTORY_ADDRESS=${poolFactoryAddress}\n`);
+
+  writeFixtures({
+    names: { expired, grace, records, soon },
+    poolFactoryAddress,
+    testAddress: testAccountAddress,
+  });
 
   return async () => {
+    rmSync(testEnvPath, { force: true });
     await server.stop();
   };
 };

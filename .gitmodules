@@ -1,0 +1,11 @@
+[submodule "contracts/lib/ens-contracts"]
+	path = contracts/lib/ens-contracts
+	url = https://github.com/ensdomains/ens-contracts.git
+	branch = staging
+[submodule "contracts/lib/contracts-v2"]
+	path = contracts/lib/contracts-v2
+	url = https://github.com/ensdomains/contracts-v2.git
+	branch = main
+[submodule "contracts/lib/solady"]
+	path = contracts/lib/solady
+	url = https://github.com/Vectorized/solady.git

@@ -1,7 +1,10 @@
 import { createTestClient, http, publicActions, walletActions } from "viem";
 import { mainnet } from "viem/chains";
 
-export const forkRpcUrl = "http://127.0.0.1:8545/1";
+// Own port so the suite never collides with a `just fork` anvil on 8545.
+export const forkRpcPort = 8547;
+
+export const forkRpcUrl = `http://127.0.0.1:${forkRpcPort}/1`;
 
 export const createForkClient = () =>
   createTestClient({

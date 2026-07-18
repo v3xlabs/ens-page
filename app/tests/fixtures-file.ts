@@ -13,8 +13,10 @@ export type OnChainFixtures = {
   names: {
     expired: NameFixture;
     grace: NameFixture;
+    records: NameFixture;
     soon: NameFixture;
   };
+  poolFactoryAddress: Address;
   testAddress: Address;
 };
 
@@ -48,18 +50,24 @@ export const readFixtures = (): OnChainFixtures => {
     throw new Error("Malformed .fixtures.json: run the suite via playwright global setup");
   }
 
-  const { testAddress } = raw;
+  const { poolFactoryAddress, testAddress } = raw;
 
   if (typeof testAddress !== "string" || !isAddress(testAddress)) {
     throw new Error("Malformed .fixtures.json: invalid testAddress");
+  }
+
+  if (typeof poolFactoryAddress !== "string" || !isAddress(poolFactoryAddress)) {
+    throw new Error("Malformed .fixtures.json: invalid poolFactoryAddress");
   }
 
   return {
     names: {
       expired: parseNameFixture(raw["names"]["expired"]),
       grace: parseNameFixture(raw["names"]["grace"]),
+      records: parseNameFixture(raw["names"]["records"]),
       soon: parseNameFixture(raw["names"]["soon"]),
     },
+    poolFactoryAddress,
     testAddress,
   };
 };

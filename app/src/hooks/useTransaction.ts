@@ -2,14 +2,19 @@ import { getWalletClient } from "@wagmi/core";
 import { useChainId, useClient, useConnection } from "@wagmi/solid";
 import { createSignal } from "solid-js";
 import type { Address, Hex } from "viem";
-import { call, waitForTransactionReceipt } from "viem/actions";
+import { call, estimateFeesPerGas, estimateGas, getGasPrice, waitForTransactionReceipt } from "viem/actions";
 
 import { wagmiConfig } from "../config";
 
+export type TxProgress = {
+  currentIndex: number;
+  total: number;
+};
+
 export type TxState =
-  | { error: string; step: "error"; }
-  | { hash: Hex; step: "confirming" | "success"; }
-  | { step: "idle" | "preview" | "simulating" | "waiting-for-signature"; };
+  | { error: string; feeWeiByTx: bigint[]; hashes: Hex[]; step: "error"; }
+  | { feeWeiByTx: bigint[]; hashes: Hex[]; progress: TxProgress; step: "confirming" | "simulating" | "success" | "waiting-for-signature"; }
+  | { step: "idle" | "preview"; };
 
 export type TxStep = TxState["step"];
 
@@ -17,6 +22,12 @@ export type TransactionRequest = {
   data: Hex;
   to: Address;
   value?: bigint;
+};
+
+export type SequenceCallbacks = {
+  onTransactionConfirmed?: (index: number) => void;
+  onTransactionSent?: (hash: Hex, index: number) => void;
+  onTransactionStarted?: (index: number) => void;
 };
 
 const pendingSteps = new Set<TxStep>(["simulating", "waiting-for-signature", "confirming"]);
@@ -33,34 +44,85 @@ export const useTransaction = () => {
 
   const reset = () => setState({ step: "idle" });
 
-  const send = async (request: TransactionRequest): Promise<Hex | undefined> => {
+  // Executes each request as its own simulate → sign → wait-for-receipt cycle,
+  // surfacing which transaction of the sequence is in flight via progress.
+  // Builders run lazily under the "simulating" step so callers can re-quote
+  // prices immediately before each transaction is sent.
+  const sendSequence = async (
+    buildRequests: Array<() => Promise<TransactionRequest>>,
+    callbacks?: SequenceCallbacks,
+  ): Promise<Hex[] | undefined> => {
+    if (buildRequests.length === 0) return;
+
     const publicClient = client();
     const account = connection().address;
 
     if (!publicClient || !account) {
-      setState({ error: "Connect a wallet first.", step: "error" });
+      setState({ error: "Connect a wallet first.", feeWeiByTx: [], hashes: [], step: "error" });
 
       return;
     }
 
+    const total = buildRequests.length;
+    const hashes: Hex[] = [];
+    const feeWeiByTx: bigint[] = [];
+
+    const estimateFeeWei = async (request: TransactionRequest & { account: Address; }): Promise<bigint | undefined> => {
+      try {
+        const gasLimit = await estimateGas(publicClient, request);
+        const perGasWei = await estimateFeesPerGas(publicClient)
+          .then(fees => fees.maxFeePerGas)
+          .catch(() => getGasPrice(publicClient));
+
+        return gasLimit * perGasWei;
+      }
+      catch {
+        // The fee readout is informational — never block the flow on it.
+        return;
+      }
+    };
+
     try {
-      setState({ step: "simulating" });
-      await call(publicClient, { account, ...request });
+      for (const [index, buildRequest] of buildRequests.entries()) {
+        const progress = { currentIndex: index, total };
 
-      setState({ step: "waiting-for-signature" });
-      const walletClient = await getWalletClient(wagmiConfig, { chainId: chainId() });
-      const hash = await walletClient.sendTransaction({ account, ...request });
+        callbacks?.onTransactionStarted?.(index);
+        setState({ feeWeiByTx: [...feeWeiByTx], hashes: [...hashes], progress, step: "simulating" });
 
-      setState({ hash, step: "confirming" });
-      await waitForTransactionReceipt(publicClient, { hash });
+        const request = await buildRequest();
 
-      setState({ hash, step: "success" });
+        await call(publicClient, { account, ...request });
 
-      return hash;
+        const feeWei = await estimateFeeWei({ account, ...request });
+
+        if (feeWei !== undefined) feeWeiByTx.push(feeWei);
+
+        setState({ feeWeiByTx: [...feeWeiByTx], hashes: [...hashes], progress, step: "waiting-for-signature" });
+        const walletClient = await getWalletClient(wagmiConfig, { chainId: chainId() });
+        const hash = await walletClient.sendTransaction({ account, ...request });
+
+        hashes.push(hash);
+        callbacks?.onTransactionSent?.(hash, index);
+        setState({ feeWeiByTx: [...feeWeiByTx], hashes: [...hashes], progress, step: "confirming" });
+
+        await waitForTransactionReceipt(publicClient, { hash });
+        callbacks?.onTransactionConfirmed?.(index);
+      }
+
+      setState({
+        feeWeiByTx: [...feeWeiByTx],
+        hashes: [...hashes],
+        progress: { currentIndex: total - 1, total },
+        step: "success",
+      });
+
+      return hashes;
     }
     catch (error) {
       setState({
         error: error instanceof Error ? error.message : "Transaction failed",
+        feeWeiByTx: [...feeWeiByTx],
+        hashes: [...hashes],
         step: "error",
       });
 
@@ -68,5 +130,11 @@ export const useTransaction = () => {
     }
   };
 
-  return { preview, reset, send, state };
+  const send = async (request: TransactionRequest): Promise<Hex | undefined> => {
+    const hashes = await sendSequence([() => Promise.resolve(request)]);
+
+    return hashes?.[0];
+  };
+
+  return { preview, reset, send, sendSequence, state };
 };

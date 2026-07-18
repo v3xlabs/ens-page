@@ -1,14 +1,22 @@
 import { Dialog } from "@kobalte/core/dialog";
 import { TbOutlineAlertTriangle, TbOutlineCheck, TbOutlineLoader, TbOutlineX } from "solid-icons/tb";
-import { createMemo, For, Show } from "solid-js";
+import { createMemo, For, type JSX, Show } from "solid-js";
+import { formatEther } from "viem/utils";
 
 import { isPendingStep, type TxState, type TxStep } from "../hooks/useTransaction";
 
+export type TransactionSummaryRow = {
+  label: string;
+  value: string;
+};
+
 type TransactionModalProperties = {
+  children?: JSX.Element;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   state: TxState;
+  summary?: TransactionSummaryRow[];
   title: string;
 };
 
@@ -22,7 +30,9 @@ const STEPS: Array<{ label: string; step: TxStep; }> = [
 
 const stepIndex = (step: TxStep) => STEPS.findIndex(entry => entry.step === step);
 
-const StepIndicator = (properties: { active: boolean; completed: boolean; label: string; }) => (
+const stepLabel = (step: TxStep) => STEPS.find(entry => entry.step === step)?.label ?? "";
+
+const StepIndicator = (properties: { active: boolean; completed: boolean; label: string; pending: boolean; }) => (
   <div class="flex items-center gap-3">
     <div
       classList={{
@@ -32,7 +42,12 @@ const StepIndicator = (properties: { active: boolean; completed: boolean; label:
         "border-green-primary bg-green-primary text-white": properties.completed,
       }}
     >
-      <Show when={properties.completed} fallback={properties.active ? <TbOutlineLoader class="animate-spin" size={16} /> : ""}>
+      <Show
+        when={properties.completed}
+        fallback={properties.active
+          ? (properties.pending ? <TbOutlineLoader class="animate-spin" size={16} /> : <span aria-hidden="true">●</span>)
+          : ""}
+      >
         <TbOutlineCheck size={16} />
       </Show>
     </div>
@@ -48,15 +63,36 @@ const StepIndicator = (properties: { active: boolean; completed: boolean; label:
   </div>
 );
 
+const formatFeeEth = (weiValues: bigint[]) => {
+  const totalWei = weiValues.reduce((sum, wei) => sum + wei, 0n);
+
+  return `~${Number(formatEther(totalWei)).toFixed(6)} ETH`;
+};
+
 export const TransactionModal = (properties: TransactionModalProperties) => {
   const currentIndex = createMemo(() => stepIndex(properties.state.step));
   const isPending = createMemo(() => isPendingStep(properties.state.step));
+  const progress = createMemo(() => ("progress" in properties.state ? properties.state.progress : undefined));
+  const hashes = createMemo(() => ("hashes" in properties.state ? properties.state.hashes : []));
+  const feeWeiByTx = createMemo(() => ("feeWeiByTx" in properties.state ? properties.state.feeWeiByTx : []));
+
+  const feeText = createMemo(() => {
+    const fees = feeWeiByTx();
+
+    if (fees.length === 0) return properties.state.step === "simulating" ? "Estimating…" : undefined;
+
+    const suffix = (progress()?.total ?? 1) > 1 ? ` · ${fees.length} tx` : "";
+
+    return `${formatFeeEth(fees)}${suffix}`;
+  });
   const progressPercent = createMemo(() => {
     if (properties.state.step === "success") return 100;
 
-    return Math.max(0, currentIndex()) * (100 / (STEPS.length - 1));
+    const sequence = progress() ?? { currentIndex: 0, total: 1 };
+    const withinTx = Math.max(0, currentIndex()) / (STEPS.length - 1);
+
+    return ((sequence.currentIndex + withinTx) / sequence.total) * 100;
   });
-  const transactionHash = createMemo(() => ("hash" in properties.state ? properties.state.hash : undefined));
 
   return (
     <Dialog
@@ -68,8 +104,51 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
       <Dialog.Portal>
         <Dialog.Overlay class="dialog-overlay" />
         <div class="dialog-positioner">
-          <Dialog.Content class="dialog-content" data-testid="tx-modal">
+          <Dialog.Content class="dialog-content max-h-[calc(100vh-2rem)] overflow-y-auto" data-testid="tx-modal">
             <Dialog.Title class="text-xl font-bold">{properties.title}</Dialog.Title>
+
+            <Show when={(properties.summary?.length ?? 0) > 0 || feeText()}>
+              <div class="mt-4 rounded-button bg-background-secondary px-4 py-3" data-testid="tx-summary">
+                <For each={properties.summary ?? []}>
+                  {row => (
+                    <div class="flex items-baseline justify-between gap-4 py-0.5 text-sm">
+                      <span class="shrink-0 font-bold text-text-secondary">{row.label}</span>
+                      <span class="min-w-0 truncate text-right font-bold tabular-nums">{row.value}</span>
+                    </div>
+                  )}
+                </For>
+                <Show when={feeText()}>
+                  {fee => (
+                    <div class="flex items-baseline justify-between gap-4 py-0.5 text-sm" data-testid="tx-fee">
+                      <span class="shrink-0 font-bold text-text-secondary">Estimated network fee</span>
+                      <span class="min-w-0 truncate text-right font-bold tabular-nums">{fee()}</span>
+                    </div>
+                  )}
+                </Show>
+              </div>
+            </Show>
+
+            <Show when={properties.state.step === "preview"}>
+              {properties.children}
+            </Show>
+
+            <Show when={isPending() && (progress()?.total ?? 1) > 1 && progress()}>
+              {sequence => (
+                <p class="mt-4 text-sm font-bold text-text-secondary">
+                  Transaction
+                  {" "}
+                  {sequence().currentIndex + 1}
+                  {" "}
+                  of
+                  {" "}
+                  {sequence().total}
+                  {" "}
+                  ·
+                  {" "}
+                  {stepLabel(properties.state.step)}
+                </p>
+              )}
+            </Show>
 
             <Show when={properties.state.step !== "error"}>
               <div class="mt-6 space-y-4">
@@ -79,6 +158,7 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
                       active={properties.state.step === entry.step}
                       completed={currentIndex() > stepIndex(entry.step)}
                       label={entry.label}
+                      pending={isPending()}
                     />
                   )}
                 </For>
@@ -106,28 +186,34 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
                 <div class="flex items-start gap-3">
                   <TbOutlineCheck class="mt-0.5 shrink-0 text-green-primary" size={20} />
                   <div>
-                    <p class="font-bold text-green-primary">Transaction confirmed</p>
+                    <p class="font-bold text-green-primary">
+                      {hashes().length > 1 ? `All ${hashes().length} transactions confirmed` : "Transaction confirmed"}
+                    </p>
                     <p class="mt-1 text-sm text-text-secondary">Your changes are on chain.</p>
                   </div>
                 </div>
               </div>
             </Show>
 
-            <Show when={transactionHash()}>
-              {hash => (
-                <div class="mt-4 rounded-button bg-background-secondary px-4 py-3">
-                  <p class="text-xs font-bold text-text-secondary">Transaction hash</p>
-                  <a
-                    class="mt-1 block truncate text-sm font-bold text-blue-primary hover:underline"
-                    data-testid="tx-hash"
-                    href={`https://etherscan.io/tx/${hash()}`}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {hash()}
-                  </a>
-                </div>
-              )}
+            <Show when={hashes().length > 0}>
+              <div class="mt-4 rounded-button bg-background-secondary px-4 py-3">
+                <p class="text-xs font-bold text-text-secondary">
+                  {hashes().length > 1 ? "Transaction hashes" : "Transaction hash"}
+                </p>
+                <For each={hashes()}>
+                  {(hash, index) => (
+                    <a
+                      class="mt-1 block truncate text-sm font-bold text-blue-primary hover:underline"
+                      data-testid={index() === 0 ? "tx-hash" : undefined}
+                      href={`https://etherscan.io/tx/${hash}`}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {hash}
+                    </a>
+                  )}
+                </For>
+              </div>
             </Show>
 
             <Show when={progressPercent() > 0 && properties.state.step !== "error"}>
