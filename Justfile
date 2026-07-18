@@ -10,3 +10,6 @@ app:
 
 page:
     cd page && pnpm dev
+
+contracts:
+    cd contracts && forge test
