@@ -4,15 +4,16 @@ import { ErrorBoundary, Show, Suspense } from "solid-js";
 
 import { CmdK } from "../components/cmd-k";
 import { Navbar } from "../components/nav/navbar";
+import { t } from "../i18n";
 
 const NetworkErrorCard = (properties: { chainId: number; onRetry: () => void; }) => (
   <div class="card mx-auto w-full max-w-2xl p-8 text-center" data-chain-id={properties.chainId}>
-    <h2 class="text-xl font-bold">Can't reach the network</h2>
+    <h2 class="text-xl font-bold">{t("network.unavailable")}</h2>
     <p class="mt-2 text-text-secondary">
-      The RPC for this chain isn't responding. Switch networks above, or retry once it's back.
+      {t("network.unavailableDescription")}
     </p>
     <button class="button subtle mt-5" onClick={() => properties.onRetry()} type="button">
-      Retry
+      {t("network.retry")}
     </button>
   </div>
 );
@@ -28,7 +29,7 @@ const RootLayout = () => {
         <Show when={chainId()} keyed>
           {activeChainId => (
             <ErrorBoundary fallback={(_error, reset) => <NetworkErrorCard chainId={activeChainId} onRetry={reset} />}>
-              <Suspense fallback={<div class="card mx-auto w-full max-w-2xl p-8 text-center text-text-secondary">Loading…</div>}>
+              <Suspense fallback={<div class="card mx-auto w-full max-w-2xl p-8 text-center text-text-secondary">{t("network.loading")}</div>}>
                 <Outlet />
               </Suspense>
             </ErrorBoundary>

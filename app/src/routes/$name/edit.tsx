@@ -9,6 +9,7 @@ import { useCanEditName } from "../../hooks/useCanEditName";
 import { useEnsRegistry } from "../../hooks/useEnsRegistry";
 import { type EnsTextRecord, useEnsTexts } from "../../hooks/useEnsTexts";
 import { useTransaction } from "../../hooks/useTransaction";
+import { t } from "../../i18n";
 import { normalizeName, prepareSetTexts, shortenAddress, type TextRecordChange } from "../../utils/ens";
 import { defaultTextRecords } from "../../utils/records";
 
@@ -80,7 +81,7 @@ export const EditPage = () => {
   };
 
   return (
-    <Show when={name()} fallback={<p class="text-text-secondary">This route is not a valid ENS name.</p>}>
+    <Show when={name()} fallback={<p class="text-text-secondary">{t("names.invalid")}</p>}>
       {nameValue => (
         <section class="card p-5 sm:p-6">
           <Link
@@ -94,7 +95,6 @@ export const EditPage = () => {
             {nameValue()}
           </Link>
 
-          <span class="tag green">Edit</span>
           <h2 class="mt-4 text-3xl font-bold tracking-tight">
             Edit
             {" "}
@@ -109,14 +109,14 @@ export const EditPage = () => {
             </Show>
           </p>
 
-          <Suspense fallback={<p class="mt-8 text-text-secondary">Loading records…</p>}>
+          <Suspense fallback={<p class="mt-8 text-text-secondary">{t("records.loading")}</p>}>
             <div class="mt-8 space-y-8">
               <RecordFieldGroup
                 disabled={!canEdit()}
                 draftValue={draftValue}
                 fields={profileFields}
                 onEdit={(key, value) => setDrafts(previous => ({ ...previous, [key]: value }))}
-                title="Profile"
+                title={t("records.profile")}
               />
 
               <RecordFieldGroup
@@ -124,7 +124,7 @@ export const EditPage = () => {
                 draftValue={draftValue}
                 fields={socialFields}
                 onEdit={(key, value) => setDrafts(previous => ({ ...previous, [key]: value }))}
-                title="Social"
+                title={t("records.social")}
               />
 
               <div class="flex items-center justify-between gap-4">
@@ -168,7 +168,7 @@ export const EditPage = () => {
             onConfirm={() => void handleConfirm()}
             state={transaction.state()}
             summary={reviewSummary()}
-            title={`Update ${nameValue()}`}
+            title={t("records.update", { name: nameValue() })}
           >
             <div class="mt-4 space-y-1.5">
               <For each={reviewChanges()}>
@@ -213,7 +213,7 @@ const RecordFieldGroup = (properties: RecordFieldGroupProperties) => (
               disabled={properties.disabled}
               id={`record-${field.key}`}
               onInput={event => properties.onEdit(field.key, event.currentTarget.value)}
-              placeholder="Not set"
+              placeholder={t("records.notSet")}
               value={properties.draftValue(field.key)}
             />
           </div>

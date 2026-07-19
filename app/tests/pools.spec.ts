@@ -51,6 +51,7 @@ test("creates, configures, funds, and manages names in an on-chain renewal pool"
   // Create a pool through the factory: review → confirm → success → navigate
   await page.goto("/pools");
   await page.getByTestId("pool-create").click();
+  await expect(page).toHaveURL(/\/pools\/new$/);
   await page.getByTestId("pool-create-label").fill("e2e pool");
   await page.getByTestId("pool-create-submit").click();
 

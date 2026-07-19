@@ -6,6 +6,7 @@ import type { Address } from "viem";
 import { useRenewalPool } from "../hooks/useRenewalPools";
 import { useSearchCache } from "../hooks/useSearchCache";
 import { useTransaction } from "../hooks/useTransaction";
+import { t } from "../i18n";
 import { normalizeName, shortenAddress } from "../utils/ens";
 import { buildSearchResults, type SearchResult } from "../utils/search";
 import { NameAvatar } from "./name-avatar";
@@ -97,7 +98,7 @@ export const PoolNamesEditor = (properties: PoolNamesEditorProperties) => {
 
   return (
     <>
-      <button aria-label="Add or remove pool names" class="icon-button small" data-testid="pool-names-edit" onClick={() => openEditor(true)} type="button">
+      <button aria-label={t("pools.addOrRemoveNames")} class="icon-button small" data-testid="pool-names-edit" onClick={() => openEditor(true)} type="button">
         <TbOutlinePlus size={16} />
       </button>
 
@@ -108,10 +109,9 @@ export const PoolNamesEditor = (properties: PoolNamesEditorProperties) => {
             <Dialog.Content class="dialog-content max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div class="flex items-start justify-between gap-4">
                 <div>
-                  <Dialog.Title class="text-xl font-bold">Edit pool names</Dialog.Title>
-                  <Dialog.Description class="mt-1 text-sm text-text-secondary">Stage additions and removals, then review one on-chain update.</Dialog.Description>
+                  <Dialog.Title class="text-xl font-bold">{t("pools.editNames")}</Dialog.Title>
                 </div>
-                <Dialog.CloseButton aria-label="Close name editor" class="icon-button small" type="button"><TbOutlineX size={16} /></Dialog.CloseButton>
+                <Dialog.CloseButton aria-label={t("pools.closeNameEditor")} class="icon-button small" type="button"><TbOutlineX size={16} /></Dialog.CloseButton>
               </div>
 
               <div class="relative mt-5">
@@ -123,7 +123,7 @@ export const PoolNamesEditor = (properties: PoolNamesEditorProperties) => {
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && suggestions().at(0)) addName(suggestions()[0].name);
                   }}
-                  placeholder="Add a .eth name"
+                  placeholder={t("pools.addName")}
                   type="text"
                   value={input()}
                 />
@@ -147,31 +147,31 @@ export const PoolNamesEditor = (properties: PoolNamesEditorProperties) => {
                     <div class="flex items-center gap-3 rounded-button bg-background-secondary px-3 py-2">
                       <NameAvatar name={name} />
                       <span class="min-w-0 flex-1 truncate font-bold">{name}</span>
-                      <button aria-label={`Remove ${name} from draft`} class="icon-button small" data-testid={`pool-names-remove-${name}`} onClick={() => removeName(name)} type="button"><TbOutlineX size={14} /></button>
+                      <button aria-label={t("pools.removeDraft", { name })} class="icon-button small" data-testid={`pool-names-remove-${name}`} onClick={() => removeName(name)} type="button"><TbOutlineX size={14} /></button>
                     </div>
                   )}
                 </For>
               </div>
 
               <div class="mt-5 flex justify-end">
-                <button class="button primary" data-testid="pool-names-review" disabled={!hasChanges()} onClick={reviewChanges} type="button">Review changes</button>
+                <button class="button primary" data-testid="pool-names-review" disabled={!hasChanges()} onClick={reviewChanges} type="button">{t("pools.reviewChanges")}</button>
               </div>
             </Dialog.Content>
           </div>
         </Dialog.Portal>
       </Dialog>
 
-      <TransactionModal isOpen={isReviewOpen()} onClose={closeReview} onConfirm={() => void confirmChanges()} state={transaction.state()} summary={reviewSummary()} title="Update pool names">
+      <TransactionModal isOpen={isReviewOpen()} onClose={closeReview} onConfirm={() => void confirmChanges()} state={transaction.state()} summary={reviewSummary()} title={t("pools.updateNames")}>
         <div class="mt-4 space-y-3 text-sm">
           <Show when={additions().length > 0}>
             <div>
-              <p class="font-bold text-green-primary">Add</p>
+              <p class="font-bold text-green-primary">{t("common.add")}</p>
               <p class="mt-1 text-text-secondary">{additions().join(", ")}</p>
             </div>
           </Show>
           <Show when={removals().length > 0}>
             <div>
-              <p class="font-bold text-red-primary">Remove</p>
+              <p class="font-bold text-red-primary">{t("common.remove")}</p>
               <p class="mt-1 text-text-secondary">{removals().join(", ")}</p>
             </div>
           </Show>

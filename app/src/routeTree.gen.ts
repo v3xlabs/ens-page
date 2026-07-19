@@ -18,6 +18,8 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as NameIndexRouteImport } from './routes/$name/index'
 import { Route as NameEditRouteImport } from './routes/$name/edit'
 import { Route as PoolPoolIdRouteImport } from './routes/pool.$poolId'
+import { Route as PoolsIndexRouteImport } from './routes/pools.index'
+import { Route as PoolsNewRouteImport } from './routes/pools.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,27 +66,40 @@ const PoolPoolIdRoute = PoolPoolIdRouteImport.update({
   path: '/pool/$poolId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoolsIndexRoute = PoolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PoolsRoute,
+} as any)
+const PoolsNewRoute = PoolsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PoolsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$name': typeof NameRouteRouteWithChildren
   '/activity': typeof ActivityRoute
   '/names': typeof NamesRoute
-  '/pools': typeof PoolsRoute
+  '/pools': typeof PoolsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/$name/edit': typeof NameEditRoute
   '/pool/$poolId': typeof PoolPoolIdRoute
+  '/pools/new': typeof PoolsNewRoute
   '/$name/': typeof NameIndexRoute
+  '/pools/': typeof PoolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/names': typeof NamesRoute
-  '/pools': typeof PoolsRoute
   '/settings': typeof SettingsRoute
   '/$name/edit': typeof NameEditRoute
   '/pool/$poolId': typeof PoolPoolIdRoute
+  '/pools/new': typeof PoolsNewRoute
   '/$name': typeof NameIndexRoute
+  '/pools': typeof PoolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,11 +107,13 @@ export interface FileRoutesById {
   '/$name': typeof NameRouteRouteWithChildren
   '/activity': typeof ActivityRoute
   '/names': typeof NamesRoute
-  '/pools': typeof PoolsRoute
+  '/pools': typeof PoolsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/$name/edit': typeof NameEditRoute
   '/pool/$poolId': typeof PoolPoolIdRoute
+  '/pools/new': typeof PoolsNewRoute
   '/$name/': typeof NameIndexRoute
+  '/pools/': typeof PoolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,17 +126,20 @@ export interface FileRouteTypes {
     | '/settings'
     | '/$name/edit'
     | '/pool/$poolId'
+    | '/pools/new'
     | '/$name/'
+    | '/pools/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activity'
     | '/names'
-    | '/pools'
     | '/settings'
     | '/$name/edit'
     | '/pool/$poolId'
+    | '/pools/new'
     | '/$name'
+    | '/pools'
   id:
     | '__root__'
     | '/'
@@ -130,7 +150,9 @@ export interface FileRouteTypes {
     | '/settings'
     | '/$name/edit'
     | '/pool/$poolId'
+    | '/pools/new'
     | '/$name/'
+    | '/pools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -138,7 +160,7 @@ export interface RootRouteChildren {
   NameRouteRoute: typeof NameRouteRouteWithChildren
   ActivityRoute: typeof ActivityRoute
   NamesRoute: typeof NamesRoute
-  PoolsRoute: typeof PoolsRoute
+  PoolsRoute: typeof PoolsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   PoolPoolIdRoute: typeof PoolPoolIdRoute
 }
@@ -208,6 +230,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof PoolPoolIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pools/': {
+      id: '/pools/'
+      path: '/'
+      fullPath: '/pools/'
+      preLoaderRoute: typeof PoolsIndexRouteImport
+      parentRoute: typeof PoolsRoute
+    }
+    '/pools/new': {
+      id: '/pools/new'
+      path: '/new'
+      fullPath: '/pools/new'
+      preLoaderRoute: typeof PoolsNewRouteImport
+      parentRoute: typeof PoolsRoute
+    }
   }
 }
 
@@ -225,12 +261,24 @@ const NameRouteRouteWithChildren = NameRouteRoute._addFileChildren(
   NameRouteRouteChildren,
 )
 
+interface PoolsRouteChildren {
+  PoolsNewRoute: typeof PoolsNewRoute
+  PoolsIndexRoute: typeof PoolsIndexRoute
+}
+
+const PoolsRouteChildren: PoolsRouteChildren = {
+  PoolsNewRoute: PoolsNewRoute,
+  PoolsIndexRoute: PoolsIndexRoute,
+}
+
+const PoolsRouteWithChildren = PoolsRoute._addFileChildren(PoolsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NameRouteRoute: NameRouteRouteWithChildren,
   ActivityRoute: ActivityRoute,
   NamesRoute: NamesRoute,
-  PoolsRoute: PoolsRoute,
+  PoolsRoute: PoolsRouteWithChildren,
   SettingsRoute: SettingsRoute,
   PoolPoolIdRoute: PoolPoolIdRoute,
 }

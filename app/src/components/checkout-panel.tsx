@@ -9,6 +9,7 @@ import { PRICE_PER_YEAR_USD, type PriceTier, useCart } from "../hooks/useCart";
 import { usePools } from "../hooks/usePools";
 import { useTierRenewalQuotes } from "../hooks/useRenewalQuote";
 import { useTransaction } from "../hooks/useTransaction";
+import { formatYears, t } from "../i18n";
 import { normalizeName } from "../utils/ens";
 import { fetchRenewalQuote, groupNamesByTier, prepareRenewAll, SECONDS_PER_YEAR } from "../utils/renewal";
 import { TransactionModal, type TransactionSummaryRow } from "./transaction-modal";
@@ -97,7 +98,7 @@ export const CheckoutPanel = () => {
 
   const handlePoolSelection = () => {
     setPoolSeed(cartItems().map(item => item.name));
-    void navigate({ to: "/pools" });
+    void navigate({ to: "/pools/new" });
   };
 
   const handleClear = () => {
@@ -282,36 +283,36 @@ export const CheckoutPanel = () => {
 
                   if (event.key === "Escape") setIsAddOpen(false);
                 }}
-                placeholder="Add any name — even one you don't own…"
+                placeholder={t("checkout.addAnyName")}
                 ref={element => setTimeout(() => element.focus())}
                 type="text"
                 value={addNameValue()}
               />
               <button class="button subtle" onClick={handleAddName} type="button">
-                Add
+                {t("common.add")}
               </button>
             </div>
           </Show>
 
           <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
             <select
-              aria-label="Renewal duration"
+              aria-label={t("checkout.renewalDuration")}
               class="cursor-pointer rounded-button border border-border bg-background-secondary px-3 py-2 font-bold tabular-nums"
               data-testid="cart-duration"
               onChange={event => setDurationYears(Number(event.currentTarget.value))}
               value={durationYears()}
             >
-              <option value={1}>1 year</option>
-              <option value={2}>2 years</option>
-              <option value={3}>3 years</option>
-              <option value={5}>5 years</option>
+              <option value={1}>{formatYears(1)}</option>
+              <option value={2}>{formatYears(2)}</option>
+              <option value={3}>{formatYears(3)}</option>
+              <option value={5}>{formatYears(5)}</option>
             </select>
             <button
               aria-expanded={isAddOpen()}
-              aria-label="Add another name to the batch"
+              aria-label={t("checkout.addName")}
               class="icon-button size-10"
               onClick={() => setIsAddOpen(previous => !previous)}
-              title="Add any name — even one you don't own"
+              title={t("checkout.addAnyName")}
               type="button"
             >
               <TbOutlinePlus size={18} />
@@ -327,11 +328,11 @@ export const CheckoutPanel = () => {
               </span>
             </div>
             <button
-              aria-label="Create a pool from this selection"
+              aria-label={t("checkout.createPool")}
               class="button subtle"
               data-testid="checkout-pool-from-selection"
               onClick={handlePoolSelection}
-              title="Create a pool from this selection"
+              title={t("checkout.createPool")}
               type="button"
             >
               ⬡ Pool

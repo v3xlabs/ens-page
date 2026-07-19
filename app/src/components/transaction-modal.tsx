@@ -4,6 +4,7 @@ import { createMemo, For, type JSX, Show } from "solid-js";
 import { formatEther } from "viem/utils";
 
 import { isPendingStep, type TxState, type TxStep } from "../hooks/useTransaction";
+import { t } from "../i18n";
 
 export type TransactionSummaryRow = {
   label: string;
@@ -120,7 +121,7 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
                 <Show when={feeText()}>
                   {fee => (
                     <div class="flex items-baseline justify-between gap-4 py-0.5 text-sm" data-testid="tx-fee">
-                      <span class="shrink-0 font-bold text-text-secondary">Estimated network fee</span>
+                      <span class="shrink-0 font-bold text-text-secondary">{t("transaction.estimatedFee")}</span>
                       <span class="min-w-0 truncate text-right font-bold tabular-nums">{fee()}</span>
                     </div>
                   )}
@@ -171,7 +172,7 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
                   <div class="flex items-start gap-3">
                     <TbOutlineAlertTriangle class="mt-0.5 shrink-0 text-red-primary" size={20} />
                     <div>
-                      <p class="font-bold text-red-primary">Transaction failed</p>
+                      <p class="font-bold text-red-primary">{t("transaction.failed")}</p>
                       <p class="mt-1 break-words text-sm text-text-secondary">
                         {state().step === "error" ? state().error : undefined}
                       </p>
@@ -189,7 +190,7 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
                     <p class="font-bold text-green-primary">
                       {hashes().length > 1 ? `All ${hashes().length} transactions confirmed` : "Transaction confirmed"}
                     </p>
-                    <p class="mt-1 text-sm text-text-secondary">Your changes are on chain.</p>
+                    <p class="mt-1 text-sm text-text-secondary">{t("transaction.success")}</p>
                   </div>
                 </div>
               </div>
@@ -239,7 +240,7 @@ export const TransactionModal = (properties: TransactionModalProperties) => {
             </div>
 
             <Show when={!isPending()}>
-              <Dialog.CloseButton aria-label="Close" class="icon-button small absolute right-4 top-4">
+              <Dialog.CloseButton aria-label={t("common.close")} class="icon-button small absolute right-4 top-4">
                 <TbOutlineX size={20} />
               </Dialog.CloseButton>
             </Show>

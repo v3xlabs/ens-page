@@ -1,6 +1,8 @@
 import { Area, Axis, Chart, Line } from "solid-charts";
 import { createMemo } from "solid-js";
 
+import { t } from "../i18n";
+
 type PoolBalanceChartProperties = {
   balanceEth: number;
   yearlyCostEth: number;
@@ -21,7 +23,7 @@ export const PoolBalanceChart = (properties: PoolBalanceChartProperties) => {
   return (
     <div class="h-28 min-w-52 flex-1">
       <Chart
-        aria-label="Pool balance outlook"
+        aria-label={t("pools.balanceOutlook")}
         class="size-full"
         data={projectedBalances()}
         inset={{ bottom: 2, left: 2, right: 2, top: 6 }}
@@ -45,8 +47,8 @@ export const PoolBalanceChart = (properties: PoolBalanceChartProperties) => {
         />
       </Chart>
       <div class="mt-1 flex justify-between text-xs font-bold text-text-secondary">
-        <span>Now</span>
-        <span>12 months</span>
+        <span>{t("pools.now")}</span>
+        <span>{t("pools.months")}</span>
       </div>
     </div>
   );

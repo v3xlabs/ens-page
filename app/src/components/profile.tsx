@@ -5,6 +5,7 @@ import { createMemo, For, Show } from "solid-js";
 import { useEnsAddress } from "../hooks/useEnsAddress";
 import { useEnsAvatar } from "../hooks/useEnsAvatar";
 import { useEnsTexts } from "../hooks/useEnsTexts";
+import { t } from "../i18n";
 import { resolveIpfsUri, shortenAddress } from "../utils/ens";
 import { socialPlatforms } from "../utils/social";
 
@@ -78,14 +79,14 @@ export const ProfileDetails = (properties: ProfileProperties) => {
       <div class="mt-4 flex flex-wrap items-center gap-2">
         <Show when={recordValue("url")}>
           {value => (
-            <a aria-label="Website" class="icon-button size-10" href={value()} rel="noopener noreferrer" target="_blank">
+            <a aria-label={t("records.website")} class="icon-button size-10" href={value()} rel="noopener noreferrer" target="_blank">
               <TbOutlineWorld size={20} />
             </a>
           )}
         </Show>
         <Show when={recordValue("email")}>
           {value => (
-            <a aria-label="Email" class="icon-button size-10" href={`mailto:${value()}`}>
+            <a aria-label={t("records.email")} class="icon-button size-10" href={`mailto:${value()}`}>
               <TbOutlineMail size={20} />
             </a>
           )}

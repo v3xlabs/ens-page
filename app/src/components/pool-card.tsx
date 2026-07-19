@@ -4,6 +4,7 @@ import { type Accessor, createMemo, Show } from "solid-js";
 import { formatEther } from "viem/utils";
 
 import type { Pool, PoolMember } from "../hooks/usePools";
+import { t } from "../i18n";
 import { fetchRenewalQuote, SECONDS_PER_YEAR } from "../utils/renewal";
 
 // Real controller rent prices, quoted per name for one year.
@@ -54,10 +55,10 @@ export const poolStatus = (pool: Pool, yearlyTotalEth: number): PoolStatus => {
 export const CapabilityChips = (properties: { pool: Pool; }) => (
   <>
     <Show when={properties.pool.hasStreaming}>
-      <span class="tag yellow text-xs">⇄ stream</span>
+      <span class="tag yellow text-xs">{t("pools.stream")}</span>
     </Show>
     <Show when={properties.pool.hasUsdcSwap}>
-      <span class="tag bg-[#ffe4f0] text-xs text-[#c9256e] dark:bg-[#3d2231] dark:text-[#ff7ab2]">⇆ USDC · Uniswap</span>
+      <span class="tag bg-[#ffe4f0] text-xs text-[#c9256e] dark:bg-[#3d2231] dark:text-[#ff7ab2]">{t("pools.tokenFunding")}</span>
     </Show>
   </>
 );
@@ -131,15 +132,15 @@ export const PoolCard = (properties: { onOpen: () => void; pool: Pool; }) => {
       <div class="mt-4 flex gap-6">
         <div>
           <p class="text-lg font-bold tabular-nums">{properties.pool.members.length}</p>
-          <p class="text-xs font-bold text-text-secondary">names</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.names")}</p>
         </div>
         <div>
           <p class="text-lg font-bold tabular-nums">{formatEth(properties.pool.balanceEth, 3)}</p>
-          <p class="text-xs font-bold text-text-secondary">balance</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.balance")}</p>
         </div>
         <div>
           <p class="text-lg font-bold tabular-nums">{runwayLabel()}</p>
-          <p class="text-xs font-bold text-text-secondary">runway</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.runway")}</p>
         </div>
       </div>
 

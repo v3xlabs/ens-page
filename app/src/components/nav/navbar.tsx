@@ -20,6 +20,7 @@ import type { Address } from "viem";
 
 import { useEnsAvatar } from "../../hooks/useEnsAvatar";
 import { useEnsName } from "../../hooks/useEnsName";
+import { t } from "../../i18n";
 import { shortenAddress } from "../../utils/ens";
 import { ChainSelector } from "../chain-selector";
 import { HubTabs } from "./hub-tabs";
@@ -53,7 +54,7 @@ export const Navbar = () => {
       setConnectOpen(false);
     }
     catch (error_) {
-      setError(error_ instanceof Error ? error_.message : "Unable to connect wallet.");
+      setError(error_ instanceof Error ? error_.message : t("wallet.unableToConnect"));
     }
     finally {
       setConnectingConnector("");
@@ -77,7 +78,7 @@ export const Navbar = () => {
 
         <div class="flex flex-wrap items-center gap-2">
           <button
-            aria-label={theme() === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={theme() === "dark" ? t("wallet.switchToLightMode") : t("wallet.switchToDarkMode")}
             class="icon-button"
             type="button"
             onClick={() => setTheme(theme() === "dark" ? "light" : "dark")}
@@ -148,19 +149,19 @@ const ProfileDropdown = (properties: ProfileDropdownProperties) => {
                 class="dropdown-item"
                 onSelect={() => void navigate({ params: { name: name() }, to: "/$name" })}
               >
-                My Profile
+                {t("navigation.myProfile")}
               </DropdownMenu.Item>
             )}
           </Show>
           <DropdownMenu.Item class="dropdown-item" onSelect={() => void navigate({ to: "/names" })}>
-            My names
+            {t("navigation.myNames")}
           </DropdownMenu.Item>
           <DropdownMenu.Item class="dropdown-item" onSelect={() => void navigate({ to: "/settings" })}>
-            Settings
+            {t("navigation.settings")}
           </DropdownMenu.Item>
           <DropdownMenu.Separator class="dropdown-separator" />
           <DropdownMenu.Item class="dropdown-item danger" onSelect={properties.disconnectWallet}>
-            Disconnect
+            {t("wallet.disconnect")}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
@@ -193,7 +194,7 @@ const ConnectWalletDialog = (properties: ConnectWalletDialogProperties) => (
   <Dialog open={properties.open} onOpenChange={properties.setOpen}>
     <Dialog.Trigger class="button primary" data-testid="connect-wallet" type="button">
       <TbOutlineWallet size={18} aria-hidden="true" />
-      Connect wallet
+      {t("wallet.connect")}
     </Dialog.Trigger>
     <Dialog.Portal>
       <Dialog.Overlay class="dialog-overlay" />
@@ -202,19 +203,16 @@ const ConnectWalletDialog = (properties: ConnectWalletDialogProperties) => (
           <div class="flex items-start justify-between gap-4">
             <div>
               <Dialog.Title class="text-2xl font-bold tracking-tight">
-                Connect wallet
+                {t("wallet.connect")}
               </Dialog.Title>
-              <Dialog.Description class="mt-2 text-text-secondary">
-                Choose an available connector to continue.
-              </Dialog.Description>
             </div>
-            <Dialog.CloseButton class="icon-button small" type="button" aria-label="Close wallet connector modal">
+            <Dialog.CloseButton class="icon-button small" type="button" aria-label={t("wallet.closeConnectorModal")}>
               <TbOutlineX size={20} aria-hidden="true" />
             </Dialog.CloseButton>
           </div>
 
           <div class="mt-6 grid gap-3">
-            <Show when={properties.connectors.length > 0} fallback={<p class="rounded-button border border-border bg-background-secondary p-4 text-text-secondary">No wallet connectors are available in this browser.</p>}>
+            <Show when={properties.connectors.length > 0} fallback={<p class="rounded-button border border-border bg-background-secondary p-4 text-text-secondary">{t("wallet.noConnectors")}</p>}>
               <For each={properties.connectors.toSorted((a, b) => a.name.localeCompare(b.name))}>
                 {connector => (
                   <button

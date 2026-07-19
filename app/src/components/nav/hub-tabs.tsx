@@ -4,6 +4,7 @@ import { createMemo, Show } from "solid-js";
 
 import { useOwnedNames } from "../../hooks/useOwnedNames";
 import { usePools } from "../../hooks/usePools";
+import { t } from "../../i18n";
 
 const headerClass = (isActive: boolean) =>
   `text-lg font-bold tracking-tight transition-colors ${isActive ? "text-text-primary" : "text-text-secondary hover:text-text-primary"}`;
@@ -27,13 +28,13 @@ export const HubTabs = () => {
   const isPoolsActive = createMemo(() => pathname().startsWith("/pool"));
 
   return (
-    <nav aria-label="Name management" class="flex items-baseline gap-6">
+    <nav aria-label={t("navigation.names")} class="flex items-baseline gap-6">
       <Link
         class={headerClass(pathname() === "/names")}
         data-testid="tab-names"
         to="/names"
       >
-        Names
+        {t("navigation.names")}
         <Count count={nameCount()} />
       </Link>
       <Link
@@ -41,7 +42,7 @@ export const HubTabs = () => {
         data-testid="tab-pools"
         to="/pools"
       >
-        Pools
+        {t("navigation.pools")}
         <Count count={pools().length} />
       </Link>
       <Link
@@ -49,7 +50,7 @@ export const HubTabs = () => {
         data-testid="tab-activity"
         to="/activity"
       >
-        Activity
+        {t("navigation.activity")}
       </Link>
     </nav>
   );

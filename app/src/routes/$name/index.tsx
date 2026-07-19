@@ -12,6 +12,7 @@ import { useEnsRegistry } from "../../hooks/useEnsRegistry";
 import { useEnsTexts } from "../../hooks/useEnsTexts";
 import { useOwnedNames } from "../../hooks/useOwnedNames";
 import { useSearchCache } from "../../hooks/useSearchCache";
+import { t } from "../../i18n";
 import { normalizeName } from "../../utils/ens";
 import { profileKeys, socialKeys } from "../../utils/social";
 
@@ -49,7 +50,7 @@ export const NamePage = () => {
   });
 
   return (
-    <Show when={name()} fallback={<p class="text-text-secondary">This route is not a valid ENS name.</p>}>
+    <Show when={name()} fallback={<p class="text-text-secondary">{t("names.invalid")}</p>}>
       {nameValue => (
         <section class="grid w-full gap-6">
           <div class="flex w-full items-center justify-between">
@@ -145,9 +146,9 @@ const AddressesCard = (properties: RecordsCardProperties) => {
 
   return (
     <div class="card p-5 sm:p-6">
-      <span class="tag green">Addresses</span>
+      <span class="tag green">{t("names.addresses")}</span>
       <div class="mt-5 grid gap-3">
-        <Show when={visible().length > 0} fallback={<p class="text-text-secondary">No address records found.</p>}>
+        <Show when={visible().length > 0} fallback={<p class="text-text-secondary">{t("names.noAddressRecords")}</p>}>
           <For each={visible()}>
             {record => (
               <RecordRow
@@ -168,8 +169,8 @@ const InfrastructureCard = (properties: RecordsCardProperties) => {
 
   return (
     <div class="card p-5 sm:p-6">
-      <span class="tag grey">Infrastructure</span>
-      <h3 class="mt-4 text-xl font-bold">Resolver and registry</h3>
+      <span class="tag grey">{t("names.infrastructure")}</span>
+      <h3 class="mt-4 text-xl font-bold">{t("names.resolverAndRegistry")}</h3>
       <div class="mt-5 grid gap-3">
         <RecordRow copyValue={registry.data?.registry} label="Registry" value={registry.data?.registry} />
         <RecordRow copyValue={registry.data?.resolver} label="Resolver" value={registry.data?.resolver} />
@@ -188,7 +189,7 @@ const TextRecordsCard = (properties: RecordsCardProperties) => {
   return (
     <Show when={visible().length > 0}>
       <div class="card p-5 sm:p-6">
-        <span class="tag yellow">Text records</span>
+        <span class="tag yellow">{t("names.textRecords")}</span>
         <div class="mt-5 grid gap-3">
           <For each={visible()}>
             {record => <RecordRow label={record.label} value={record.value} />}
@@ -214,7 +215,7 @@ const RecordRow = (properties: RecordRowProperties) => (
     <Show when={properties.copyValue}>
       {copyValue => (
         <button
-          aria-label={`Copy ${properties.label}`}
+          aria-label={t("names.copy", { label: properties.label })}
           class="icon-button ml-2 size-8 shrink-0"
           onClick={() => copyToClipboard(copyValue())}
           type="button"

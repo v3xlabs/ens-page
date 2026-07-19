@@ -5,6 +5,7 @@ import { createMemo, For, Suspense } from "solid-js";
 
 import { anvilChain, isAnvilEnabled } from "../config";
 import { useChainHealth } from "../hooks/useChainHealth";
+import { t } from "../i18n";
 
 // Reads the health probe on its own, behind its own boundary, so a pending or
 // failing probe can never suspend the navbar.
@@ -17,7 +18,7 @@ const HealthDot = () => {
         "!bg-red-primary": health.status === "error",
         "chain-dot": true,
       }}
-      title={health.status === "error" ? "RPC unreachable" : undefined}
+      title={health.status === "error" ? t("network.unavailable") : undefined}
     />
   );
 };

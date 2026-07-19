@@ -11,6 +11,7 @@ import { useGraphEnsNames } from "../hooks/useGraphEnsNames";
 import { useHiddenNames } from "../hooks/useHiddenNames";
 import { useOwnedNames } from "../hooks/useOwnedNames";
 import { usePools } from "../hooks/usePools";
+import { t } from "../i18n";
 import { shortenAddress } from "../utils/ens";
 
 const GRACE_PERIOD_DAYS = 90;
@@ -177,9 +178,9 @@ export const NamesPage = () => {
   return (
     <div class="space-y-5">
       <header>
-        <h2 class="text-3xl font-bold tracking-tight">My names</h2>
+        <h2 class="text-3xl font-bold tracking-tight">{t("names.myNames")}</h2>
 
-        <Show when={address()} fallback={<p class="mt-2 text-text-secondary">Connect a wallet to view names.</p>}>
+        <Show when={address()} fallback={<p class="mt-2 text-text-secondary">{t("names.connectWallet")}</p>}>
           {owner => (
             <p class="mt-2 text-text-secondary">
               Names owned by
@@ -206,7 +207,7 @@ export const NamesPage = () => {
             class="input flex-1"
             data-testid="names-search"
             onInput={event => handleSearchInput(event.currentTarget.value)}
-            placeholder="Filter names…"
+            placeholder={t("names.filter")}
             type="text"
             value={filterQuery()}
           />
@@ -228,7 +229,7 @@ export const NamesPage = () => {
             class="icon-button size-10"
             disabled={isLoading()}
             onClick={() => void handleRefresh()}
-            title="Fetch names from the ENS subgraph"
+            title={t("names.fetchFromSubgraph")}
             type="button"
           >
             <TbOutlineRefresh class={isLoading() ? "animate-spin" : ""} size={20} />
@@ -238,16 +239,10 @@ export const NamesPage = () => {
         <div class="flex flex-wrap items-center gap-2">
           <FilterChip count={activeNames().length} filter="all" label="All" />
           <FilterChip count={soonCount()} filter="soon" label="Expiring soon" />
-          <FilterChip count={graceCount()} filter="grace" label="In grace" />
+          <FilterChip count={graceCount()} filter="grace" label="Grace period" />
           <FilterChip count={pooledCount()} filter="pooled" label="In a pool" />
           <FilterChip count={hiddenCount()} filter="hidden" label="Hidden" />
         </div>
-
-        <Show when={selectMode()}>
-          <p class="text-sm text-text-secondary">
-            Select mode is on: clicking a name adds it to the renewal cart instead of opening it.
-          </p>
-        </Show>
       </section>
 
       <Show when={address()}>
@@ -259,15 +254,15 @@ export const NamesPage = () => {
                 when={sortedNames().length > 0}
                 fallback={(
                   <>
-                    <p class="font-bold">No names found</p>
+                    <p class="font-bold">{t("names.noNames")}</p>
                     <p class="mt-2 text-sm text-text-secondary">
                       Visit a name to track it, or press the refresh button to fetch from the ENS subgraph.
                     </p>
                   </>
                 )}
               >
-                <p class="font-bold">No matches</p>
-                <p class="mt-2 text-sm text-text-secondary">No names match your filter.</p>
+                <p class="font-bold">{t("names.noMatches")}</p>
+                <p class="mt-2 text-sm text-text-secondary">{t("names.noMatchesDescription")}</p>
               </Show>
             </div>
           )}
@@ -286,7 +281,7 @@ export const NamesPage = () => {
           <span class="tabular-nums">{rangeLabel()}</span>
           <div class="flex flex-wrap items-center gap-1">
             <button
-              aria-label="Previous page"
+              aria-label={t("names.previousPage")}
               class="min-w-8 cursor-pointer rounded-lg px-2 py-1.5 font-bold hover:bg-background-secondary hover:text-text-primary disabled:cursor-default disabled:opacity-40"
               disabled={currentPage() === 0}
               onClick={() => setPageIndex(currentPage() - 1)}
@@ -311,7 +306,7 @@ export const NamesPage = () => {
               )}
             </For>
             <button
-              aria-label="Next page"
+              aria-label={t("names.nextPage")}
               class="min-w-8 cursor-pointer rounded-lg px-2 py-1.5 font-bold hover:bg-background-secondary hover:text-text-primary disabled:cursor-default disabled:opacity-40"
               disabled={currentPage() >= pageCount() - 1}
               onClick={() => setPageIndex(currentPage() + 1)}
@@ -361,15 +356,15 @@ export const NamesPage = () => {
           <Dialog.Overlay class="dialog-overlay" />
           <div class="dialog-positioner">
             <Dialog.Content class="dialog-content">
-              <Dialog.Title class="text-xl font-bold">Hide name?</Dialog.Title>
+              <Dialog.Title class="text-xl font-bold">{t("names.hideTitle")}</Dialog.Title>
               <Dialog.Description class="mt-2 text-text-secondary">
                 {namePendingHide()}
                 {" "}
                 will be removed from your default name list in this browser. You can restore it any time from Hidden.
               </Dialog.Description>
               <div class="mt-6 flex justify-end gap-2">
-                <Dialog.CloseButton class="button subtle" type="button">Cancel</Dialog.CloseButton>
-                <button class="button primary" onClick={confirmHide} type="button">Hide name</button>
+                <Dialog.CloseButton class="button subtle" type="button">{t("common.cancel")}</Dialog.CloseButton>
+                <button class="button primary" onClick={confirmHide} type="button">{t("names.hide")}</button>
               </div>
             </Dialog.Content>
           </div>

@@ -4,6 +4,7 @@ import { For, Show } from "solid-js";
 import { Page } from "../components/page";
 import { SearchBar } from "../components/search-bar";
 import { useSearchCache } from "../hooks/useSearchCache";
+import { t } from "../i18n";
 
 const RECENT_NAMES_LIMIT = 8;
 
@@ -13,12 +14,11 @@ export const HomePage = () => {
 
   return (
     <section class="py-12 text-center sm:py-24">
-      <span class="tag blue">Ethereum Name Service</span>
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-        Find and manage ENS names.
+        {t("home.title")}
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-base text-text-secondary sm:text-lg">
-        Look up any name to inspect its records, edit your profile, and renew your names.
+        {t("home.description")}
       </p>
 
       <div class="mt-8 text-left">
@@ -27,7 +27,7 @@ export const HomePage = () => {
 
       <Show when={recentNames().length > 0}>
         <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <span class="text-sm font-bold text-text-secondary">Recent:</span>
+          <span class="text-sm font-bold text-text-secondary">{t("home.recent")}</span>
           <For each={recentNames()}>
             {name => (
               <Link

@@ -5,6 +5,7 @@ import { Page } from "../components/page";
 import { PoolDetail } from "../components/pool-detail";
 import { usePools } from "../hooks/usePools";
 import { useRenewalPoolFactory } from "../hooks/useRenewalPools";
+import { t } from "../i18n";
 
 export const PoolPage = () => {
   const params = useParams({ strict: false });
@@ -44,7 +45,7 @@ export const PoolPage = () => {
         when={pool()}
         fallback={(
           <section class="card p-5 sm:p-6">
-            <h2 class="text-2xl font-bold tracking-tight">Pool not found</h2>
+            <h2 class="text-2xl font-bold tracking-tight">{t("pools.notFound")}</h2>
             <p class="mt-2 text-text-secondary">
               This address is not a pool created by the configured factory.
             </p>

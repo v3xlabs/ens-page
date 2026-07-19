@@ -4,6 +4,7 @@ import { TbOutlineSearch } from "solid-icons/tb";
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
 import { useSearchCache } from "../hooks/useSearchCache";
+import { t } from "../i18n";
 import { buildSearchResults, type SearchResult } from "../utils/search";
 import { NameAvatar } from "./name-avatar";
 
@@ -103,7 +104,7 @@ export const CmdK = () => {
                 class="w-full border-none bg-transparent py-4 text-base font-bold outline-none"
                 onInput={event => setQuery(event.currentTarget.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search pages or ENS names…"
+                placeholder={t("search.placeholder")}
                 type="text"
                 value={query()}
               />
@@ -111,7 +112,7 @@ export const CmdK = () => {
             <div class="max-h-80 overflow-y-auto p-2">
               <Show
                 when={results().length > 0}
-                fallback={<p class="p-6 text-center text-sm text-text-secondary">No results</p>}
+                fallback={<p class="p-6 text-center text-sm text-text-secondary">{t("search.noResults")}</p>}
               >
                 <For each={results()}>
                   {(result, index) => (

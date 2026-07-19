@@ -3,6 +3,7 @@ import { TbOutlineSearch } from "solid-icons/tb";
 import { createMemo, createSignal, For, Show } from "solid-js";
 
 import { useSearchCache } from "../hooks/useSearchCache";
+import { t } from "../i18n";
 import { buildSearchResults, type SearchResult } from "../utils/search";
 import { NameAvatar } from "./name-avatar";
 
@@ -47,7 +48,7 @@ export const SearchBar = () => {
           onFocus={() => setFocused(true)}
           onInput={event => setQuery(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search ENS names or pages…"
+          placeholder={t("search.placeholder")}
           type="text"
           value={query()}
         />
@@ -56,7 +57,7 @@ export const SearchBar = () => {
         <div class="card absolute left-0 right-0 top-full z-10 mt-2 border border-border p-2 shadow-lg">
           <Show
             when={results().length > 0}
-            fallback={<p class="p-4 text-center text-sm text-text-secondary">No results</p>}
+            fallback={<p class="p-4 text-center text-sm text-text-secondary">{t("search.noResults")}</p>}
           >
             <For each={results()}>
               {result => (

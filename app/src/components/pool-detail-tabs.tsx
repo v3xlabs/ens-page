@@ -4,7 +4,7 @@ type PoolDetailTabsProperties = {
 };
 
 export const PoolDetailTabs = (properties: PoolDetailTabsProperties) => (
-  <div aria-label="Pool details" class="flex border-b border-border" role="tablist">
+  <div aria-label={t("pools.poolDetails")} class="flex border-b border-border" role="tablist">
     <button
       aria-selected={properties.activeTab === "overview"}
       classList={{
@@ -33,3 +33,4 @@ export const PoolDetailTabs = (properties: PoolDetailTabsProperties) => (
     </button>
   </div>
 );
+import { t } from "../i18n";

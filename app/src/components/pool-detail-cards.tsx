@@ -2,6 +2,7 @@ import { TbOutlineCheck, TbOutlinePencil } from "solid-icons/tb";
 import { createMemo, createSignal, For, Show } from "solid-js";
 
 import { type Pool, type PoolDeposit, usePools } from "../hooks/usePools";
+import { t } from "../i18n";
 import { formatEth } from "./pool-card";
 import { depositMethodStyle, formatDepositDate } from "./pool-format";
 
@@ -76,7 +77,7 @@ export const PoolLabelEditor = (properties: { label: string; poolId: string; }) 
         <>
           <h2 class="text-xl font-bold tracking-tight text-text-secondary">{properties.label}</h2>
           <button
-            aria-label="Rename the local pool note"
+            aria-label={t("pools.renameNote")}
             class="icon-button small"
             data-testid="pool-label-edit"
             onClick={startEditing}
@@ -88,7 +89,7 @@ export const PoolLabelEditor = (properties: { label: string; poolId: string; }) 
       )}
     >
       <input
-        aria-label="Pool note"
+        aria-label={t("pools.note")}
         class="input h-10 min-h-0 max-w-56"
         data-testid="pool-label-input"
         onInput={event => setDraft(event.currentTarget.value)}
@@ -100,7 +101,7 @@ export const PoolLabelEditor = (properties: { label: string; poolId: string; }) 
         value={draft()}
       />
       <button
-        aria-label="Save the pool note"
+        aria-label={t("pools.saveNote")}
         class="icon-button small"
         data-testid="pool-label-save"
         onClick={save}
@@ -114,11 +115,11 @@ export const PoolLabelEditor = (properties: { label: string; poolId: string; }) 
 
 export const PoolFundingHistoryCard = (properties: { deposits: PoolDeposit[]; }) => (
   <section class="card p-5">
-    <h3 class="text-lg font-bold">Funding history</h3>
+    <h3 class="text-lg font-bold">{t("pools.fundingHistory")}</h3>
 
     <Show
       when={properties.deposits.length > 0}
-      fallback={<p class="mt-3 text-sm text-text-secondary">No deposits yet.</p>}
+      fallback={<p class="mt-3 text-sm text-text-secondary">{t("pools.noDeposits")}</p>}
     >
       <div class="mt-2">
         <For each={properties.deposits}>
@@ -218,13 +219,13 @@ export const PoolPendingCard = (properties: {
 
   return (
     <section class="card p-5" data-testid="pool-pending">
-      <h3 class="text-lg font-bold">Pending</h3>
-      <p class="mt-1 text-sm text-text-secondary">Forecast — next renewals in execution order.</p>
 
+      <h3 class="text-lg font-bold">{t("pools.pending")}</h3>
       <Show
         when={pendingRows().length > 0}
-        fallback={<p class="mt-4 text-sm text-text-secondary">No names in this pool yet.</p>}
+        fallback={<p class="mt-4 text-sm text-text-secondary">{t("pools.noNames")}</p>}
       >
+        <p class="mt-1 text-sm text-text-secondary">{t("pools.forecast")}</p>
         <div class="mt-2">
           <For each={pendingRows()}>
             {(row, index) => (
@@ -241,9 +242,9 @@ export const PoolPendingCard = (properties: {
                 </div>
                 <Show
                   when={row.daysLeft !== undefined}
-                  fallback={<span class="tag grey text-xs">unknown expiry</span>}
+                  fallback={<span class="tag grey text-xs">{t("pools.unknownExpiry")}</span>}
                 >
-                  <Show when={isWindowOpen(row)} fallback={<span class="tag grey text-xs">queued</span>}>
+                  <Show when={isWindowOpen(row)} fallback={<span class="tag grey text-xs">{t("pools.queued")}</span>}>
                     <span class="tag yellow text-xs tabular-nums">
                       waiting for gas &lt;
                       {" "}
@@ -262,26 +263,16 @@ export const PoolPendingCard = (properties: {
           when={coveredCount() === pendingRows().length}
           fallback={(
             <p class="mt-3 text-sm font-bold text-red-primary tabular-nums">
-              Covers first
-              {" "}
-              {coveredCount()}
-              {" "}
-              of
-              {" "}
-              {pendingRows().length}
-              {" "}
-              — top up
-              {" "}
-              {formatEth(shortfallEth(), 4)}
+              {t("pools.coverageShortfall", {
+                amount: formatEth(shortfallEth(), 4),
+                covered: coveredCount(),
+                total: pendingRows().length,
+              })}
             </p>
           )}
         >
           <p class="mt-3 text-sm font-bold text-green-primary tabular-nums">
-            All
-            {" "}
-            {pendingRows().length}
-            {" "}
-            covered by current funding ✓
+            {t("pools.coverageComplete", { count: pendingRows().length })}
           </p>
         </Show>
       </Show>
@@ -304,32 +295,32 @@ export const PoolInflowsCard = (properties: { canManagePool: boolean; isConnecte
           <p class="font-bold tabular-nums">
             {properties.pool.hasStreaming ? `${formatEth(suggestedMonthlyEth(), 5)}/mo` : "—"}
           </p>
-          <p class="text-xs font-bold text-text-secondary">total incoming</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.totalIncoming")}</p>
         </div>
         <div>
           <p class="font-bold tabular-nums">
             {properties.pool.hasStreaming ? `${formatEth(suggestedMonthlyEth(), 5)}/mo` : "—"}
           </p>
-          <p class="text-xs font-bold text-text-secondary">from you</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.fromYou")}</p>
         </div>
         <div>
           <p class="font-bold tabular-nums">
             {formatEth(suggestedMonthlyEth(), 5)}
             /mo
           </p>
-          <p class="text-xs font-bold text-text-secondary">suggested</p>
+          <p class="text-xs font-bold text-text-secondary">{t("pools.suggested")}</p>
         </div>
       </div>
 
       <Show
         when={properties.pool.hasStreaming}
-        fallback={<p class="mt-4 text-sm text-text-secondary">No streams yet — anyone can stream to this pool.</p>}
+        fallback={<p class="mt-4 text-sm text-text-secondary">{t("pools.streams")}</p>}
       >
         <div class="mt-3 flex items-center gap-3 border-y border-border py-2.5">
           <InitialsCircle name="you" />
           <span class="flex items-center gap-2 font-bold">
             Your stream
-            <span class="tag blue text-xs">you</span>
+            <span class="tag blue text-xs">{t("pools.you")}</span>
           </span>
           <span class="ml-auto text-sm text-text-secondary tabular-nums">
             {formatEth(suggestedMonthlyEth(), 5)}
@@ -339,10 +330,10 @@ export const PoolInflowsCard = (properties: { canManagePool: boolean; isConnecte
       </Show>
 
       <Show when={properties.canManagePool}>
-        <p class="mt-4 text-sm text-text-secondary">The owner sets the funding buffer in pool configuration.</p>
+        <p class="mt-4 text-sm text-text-secondary">{t("pools.ownerSetsBuffer")}</p>
       </Show>
       <Show when={properties.isConnected}>
-        <p class="mt-4 rounded-button bg-background-secondary p-3 text-sm text-text-secondary">Streaming requires a pool stream adapter. No stream adapter is enabled for this pool.</p>
+        <p class="mt-4 rounded-button bg-background-secondary p-3 text-sm text-text-secondary">{t("pools.streamingUnavailable")}</p>
       </Show>
     </section>
   );

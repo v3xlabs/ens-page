@@ -13,6 +13,7 @@
   "dependencies": {
     "@ensdomains/address-encoder": "^1.1.4",
     "@kobalte/core": "^0.13.11",
+    "@solid-primitives/i18n": "2.2.1",
     "@tanstack/solid-query": "^5.101.0",
     "@tanstack/solid-router": "^1.170.15",
     "@wagmi/connectors": "^8.0.15",

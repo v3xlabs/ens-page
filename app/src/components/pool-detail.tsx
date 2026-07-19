@@ -9,6 +9,7 @@ import { useOwnedNames } from "../hooks/useOwnedNames";
 import { type Pool, usePools } from "../hooks/usePools";
 import { useRenewalPool } from "../hooks/useRenewalPools";
 import { useTransaction } from "../hooks/useTransaction";
+import { t } from "../i18n";
 import { shortenAddress } from "../utils/ens";
 import { PoolBalanceChart } from "./pool-balance-chart";
 import {
@@ -39,7 +40,6 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
   const connection = useConnection();
   const { getNamesForAddress } = useOwnedNames();
   const transaction = useTransaction();
-
   const [amountInput, setAmountInput] = createSignal("");
   const [fundingAction, setFundingAction] = createSignal<"deposit" | "withdraw">("deposit");
   const [isFundingOpen, setIsFundingOpen] = createSignal(false);
@@ -50,7 +50,6 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
   const [renewalWindowDaysInput, setRenewalWindowDaysInput] = createSignal("30");
   const [gasCeilingGweiInput, setGasCeilingGweiInput] = createSignal("15");
   const [premiumEthInput, setPremiumEthInput] = createSignal("0");
-
   const poolAddress = createMemo(() => (isAddress(properties.pool.poolId) ? getAddress(properties.pool.poolId) : undefined));
   const onchainPool = useRenewalPool(poolAddress);
   const poolEnsName = useEnsName(poolAddress);
@@ -90,6 +89,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
   const balanceEth = createMemo(() => (onchainBalance.data ? Number(formatEther(onchainBalance.data.value)) : properties.pool.balanceEth));
 
   const yearlyTotalEth = createMemo(() => poolYearlyTotalEth(costs.data, members()));
+  const streamIncomingEth = createMemo(() => (properties.pool.hasStreaming ? yearlyTotalEth() * (1 + properties.pool.bufferPercent / 100) / 12 : 0));
 
   const runwayYears = createMemo(() => {
     const yearly = yearlyTotalEth();
@@ -295,11 +295,11 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                 {address => (
                   <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
                     <span class="font-mono text-text-secondary">{address()}</span>
-                    <button aria-label="Copy pool address" class="icon-button small" onClick={() => copyAddress(address())} type="button">
+                    <button aria-label={t("pools.copyAddress")} class="icon-button small" onClick={() => copyAddress(address())} type="button">
                       <TbOutlineCopy size={14} />
                     </button>
                     <a
-                      aria-label="View pool on Etherscan"
+                      aria-label={t("pools.viewOnEtherscan")}
                       class="icon-button small"
                       href={`https://etherscan.io/address/${address()}`}
                       rel="noopener noreferrer"
@@ -312,16 +312,16 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
               </Show>
             </div>
             <div class="text-right">
-              <p class="text-xs font-bold text-text-secondary uppercase">Pool balance</p>
+              <p class="text-xs font-bold text-text-secondary uppercase">{t("pools.balance")}</p>
               <p class="mt-1 text-3xl font-bold tabular-nums">
                 {balanceEth().toFixed(4)}
                 {" "}
                 ETH
               </p>
               <p class="mt-1 text-sm text-text-secondary">
-                Stream incoming
+                {t("pools.streamIncoming")}
                 {" "}
-                <span class="font-bold tabular-nums">0 ETH/mo</span>
+                <span class="font-bold tabular-nums">{t("pools.balancePerMonth", { amount: streamIncomingEth().toFixed(4), currency: "ETH" })}</span>
               </p>
               <p class="mt-1 text-sm text-text-secondary tabular-nums">{summaryLine()}</p>
               <div class="mt-2 flex flex-wrap justify-end gap-1.5">
@@ -340,9 +340,9 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
           <div class="flex justify-end items-end gap-4 border-t border-border pt-4">
             <Show when={isConnected()}>
               <div class="flex flex-wrap justify-end items-center gap-2">
-                <button class="button primary" data-testid="pool-fund" onClick={() => openFunding("deposit")} type="button">Fund pool</button>
+                <button class="button primary" data-testid="pool-fund" onClick={() => openFunding("deposit")} type="button">{t("pools.fund")}</button>
                 <Show when={isPoolOwner()}>
-                  <button class="button subtle" data-testid="pool-withdraw" onClick={() => openFunding("withdraw")} type="button">Withdraw</button>
+                  <button class="button subtle" data-testid="pool-withdraw" onClick={() => openFunding("withdraw")} type="button">{t("pools.withdraw")}</button>
                 </Show>
               </div>
             </Show>
@@ -389,7 +389,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                         </p>
                       </div>
                       <Show when={!member.isOwned}>
-                        <span class="tag grey text-xs">not yours</span>
+                        <span class="tag grey text-xs">{t("pools.notYours")}</span>
                       </Show>
                     </div>
                   )}
@@ -400,9 +400,9 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
 
             <section class="card order-2 p-5 sm:col-start-2">
               <div class="flex items-center justify-between gap-3">
-                <h3 class="text-lg font-bold">Pool configuration</h3>
+                <h3 class="text-lg font-bold">{t("pools.configuration")}</h3>
                 <Show when={isPoolOwner()}>
-                  <button aria-label="Edit pool configuration" class="icon-button small" data-testid="pool-config-edit" onClick={openConfigEditor} type="button"><TbOutlinePencil size={15} /></button>
+                  <button aria-label={t("pools.editConfiguration")} class="icon-button small" data-testid="pool-config-edit" onClick={openConfigEditor} type="button"><TbOutlinePencil size={15} /></button>
                 </Show>
               </div>
               <Show
@@ -410,7 +410,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                 fallback={(
                   <div class="mt-4 grid gap-3 text-sm">
                     <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Renewal duration</span>
+                      <span class="font-bold text-text-secondary">{t("pools.renewalDuration")}</span>
                       <span>
                         {Number(onchainPool.renewalDuration.data ?? 31_536_000n) / 31_536_000}
                         {" "}
@@ -418,7 +418,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                       </span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Renewal window</span>
+                      <span class="font-bold text-text-secondary">{t("pools.renewalWindow")}</span>
                       <span>
                         {Number(onchainPool.renewalThreshold.data ?? 2_592_000n) / 86_400}
                         {" "}
@@ -426,7 +426,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                       </span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Gas ceiling</span>
+                      <span class="font-bold text-text-secondary">{t("pools.gasCeiling")}</span>
                       <span>
                         {Number(onchainPool.gasPriceCap.data ?? 15_000_000_000n) / 1_000_000_000}
                         {" "}
@@ -434,7 +434,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                       </span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Relayer premium</span>
+                      <span class="font-bold text-text-secondary">{t("pools.relayerPremium")}</span>
                       <span>
                         {formatEther(onchainPool.premium.data ?? 0n)}
                         {" "}
@@ -450,15 +450,15 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
                   <ConfigField label="Gas ceiling (gwei)" testId="pool-config-gas" value={gasCeilingGweiInput()} onInput={setGasCeilingGweiInput} />
                   <ConfigField label="Relayer premium (ETH)" testId="pool-config-premium" value={premiumEthInput()} onInput={setPremiumEthInput} />
                   <div class="flex justify-end gap-2">
-                    <button class="button subtle" onClick={() => setIsConfigEditing(false)} type="button">Cancel</button>
-                    <button class="button primary" data-testid="pool-config-save" onClick={savePoolConfig} type="button">Save</button>
+                    <button class="button subtle" onClick={() => setIsConfigEditing(false)} type="button">{t("common.cancel")}</button>
+                    <button class="button primary" data-testid="pool-config-save" onClick={savePoolConfig} type="button">{t("common.save")}</button>
                   </div>
                 </div>
               </Show>
 
               <div class="mt-5 border-t border-border pt-4">
-                <h4 class="font-bold">Adapters</h4>
-                <p class="mt-1 text-sm text-text-secondary">No adapters are enabled. This pool currently accepts ETH only; token deposits and streams require an enabled adapter.</p>
+                <h4 class="font-bold">{t("pools.adapters")}</h4>
+                <p class="mt-1 text-sm text-text-secondary">{t("pools.noAdapters")}</p>
               </div>
 
             </section>
@@ -488,7 +488,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
         onConfirm={() => void confirmConfigSave()}
         state={transaction.state()}
         summary={configSummary()}
-        title="Update pool configuration"
+        title={t("pools.updateConfiguration")}
       >
         <p class="mt-4 text-sm text-text-secondary">
           Writes the renewal schedule and relayer limits to the pool contract. Relayers can

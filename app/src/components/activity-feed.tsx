@@ -1,6 +1,7 @@
 import { createMemo, For, Show } from "solid-js";
 
 import { type ActivityEntry, useActivityLog } from "../hooks/useActivityLog";
+import { t } from "../i18n";
 
 const DAY_MS = 86_400_000;
 
@@ -68,16 +69,12 @@ export const ActivityFeed = () => {
     <Show
       fallback={(
         <section class="card p-5 sm:p-6">
-          <span class="tag blue">Activity</span>
-          <h2 class="mt-4 text-xl font-bold">No activity yet</h2>
-          <p class="mt-2 text-text-secondary">
-            Renewals and registrations you start will show up here, and survive reloads.
-          </p>
+          <h2 class="text-xl font-bold">{t("activity.noActivity")}</h2>
         </section>
       )}
       when={groups().length > 0}
     >
-      <section aria-label="Activity history" class="card pb-2">
+      <section aria-label={t("activity.history")} class="card pb-2">
         <For each={groups()}>
           {group => (
             <div>

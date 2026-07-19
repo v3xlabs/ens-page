@@ -1,6 +1,7 @@
 import { For, Show } from "solid-js";
 
 import { type ActivityStep, useActivityLog } from "../hooks/useActivityLog";
+import { t } from "../i18n";
 
 const chipClassByStatus: Record<ActivityStep["status"], string> = {
   active: "tag yellow",
@@ -51,7 +52,7 @@ export const ActivityFlows = () => {
 
   return (
     <Show when={inProgress().length > 0}>
-      <section aria-label="In-progress flows" class="card">
+      <section aria-label={t("activity.inProgressFlows")} class="card">
         <For each={inProgress()}>
           {entry => (
             <article
@@ -60,7 +61,7 @@ export const ActivityFlows = () => {
             >
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <h3 class="text-lg font-bold">{entry.title}</h3>
-                <span class="tag yellow">in progress</span>
+                <span class="tag yellow">{t("activity.inProgress")}</span>
               </div>
               <Show when={entry.detail}>
                 {detail => <p class="mt-1 text-sm text-text-secondary">{detail()}</p>}
