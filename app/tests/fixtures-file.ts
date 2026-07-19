@@ -17,7 +17,7 @@ export type AdapterFixtures = {
 
 export type FairyPoolFixtures = {
   all: Address;
-  top200: Address;
+  appraised: Address;
 };
 
 export type OnChainFixtures = {
@@ -78,11 +78,11 @@ export const readFixtures = (): OnChainFixtures => {
   }
 
   if (!isRecord(fairyPools) || typeof fairyPools["all"] !== "string" || !isAddress(fairyPools["all"])
-    || typeof fairyPools["top200"] !== "string" || !isAddress(fairyPools["top200"])) {
+    || typeof fairyPools["appraised"] !== "string" || !isAddress(fairyPools["appraised"])) {
     throw new Error("Malformed .fixtures.json: invalid fairyPools");
   }
 
-  const parsedFairyPools = { all: fairyPools["all"], top200: fairyPools["top200"] };
+  const parsedFairyPools = { all: fairyPools["all"], appraised: fairyPools["appraised"] };
 
   const parseAdapter = (key: "stream" | "swap" | "yield"): Address => {
     const value = adapters[key];

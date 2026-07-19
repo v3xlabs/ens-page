@@ -7,6 +7,7 @@ import { useEnsAvatar } from "../hooks/useEnsAvatar";
 import { useEnsTexts } from "../hooks/useEnsTexts";
 import { resolveIpfsUri, shortenAddress } from "../utils/ens";
 import { socialPlatforms } from "../utils/social";
+import { zorbImageDataURI } from "../utils/zorb";
 
 type ProfileProperties = {
   name: string;
@@ -32,8 +33,11 @@ export const ProfileAvatar = (properties: ProfileProperties) => {
   const ensAvatar = useEnsAvatar(() => properties.name);
 
   return (
-    <div class="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full bg-blue-primary text-2xl font-bold text-text-accent">
-      <Show when={ensAvatar.data?.avatar} fallback={properties.name.slice(0, 2).toUpperCase()}>
+    <div class="size-20 shrink-0 overflow-hidden rounded-full">
+      <Show
+        when={ensAvatar.data?.avatar}
+        fallback={<img alt="" class="size-full" src={zorbImageDataURI(properties.name)} />}
+      >
         {avatar => <img alt="" class="size-full object-cover" src={avatar()} />}
       </Show>
     </div>

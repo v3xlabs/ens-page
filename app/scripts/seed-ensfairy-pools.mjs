@@ -1,6 +1,7 @@
-// Seeds the ENSFairy pools on a local fork:
+// Seeds the ENSFairy pools on a local fork by submitting the precomputed
+// payloads from ensfairy-seed.json (see precompute-ensfairy-seed.mjs):
 // node scripts/seed-ensfairy-pools.mjs <rpcUrl> <factoryAddress>
-// Prints APPRAISED=<address>, TOP200=<address>, and ALL=<address> for the caller to capture.
+// Prints APPRAISED=<address> and ALL=<address> for the caller to capture.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -12,29 +13,17 @@ if (!rpcUrl || !factoryAddress) throw new Error("usage: seed-ensfairy-pools.mjs 
 
 const testAccount = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-const factoryAbi = parseAbi([
-  "function createPool(address poolOwner) returns (address pool)",
+const factoryEventAbi = parseAbi([
   "event PoolCreated(address indexed pool, address indexed poolOwner)",
 ]);
 
-const poolAbi = parseAbi([
-  "function configurePool(uint64 duration, uint64 threshold, uint256 gasPriceCap, uint256 rewardCap, uint256 premium)",
-  "function updateLabels(string[] additions, string[] removals)",
+const poolReadAbi = parseAbi([
   "function getLabels() view returns (string[])",
 ]);
 
-const names = JSON.parse(readFileSync(fileURLToPath(new URL("ensfairy-names.json", import.meta.url)), "utf8"));
-const appraisals = JSON.parse(readFileSync(fileURLToPath(new URL("ensfairy-appraisals.json", import.meta.url)), "utf8"));
+const seed = JSON.parse(readFileSync(fileURLToPath(new URL("ensfairy-seed.json", import.meta.url)), "utf8"));
 
-if (!Array.isArray(appraisals.names)) throw new Error("Malformed ensfairy-appraisals.json");
-
-const appraisedLabels = appraisals.names.map(({ name }) => {
-  if (typeof name !== "string" || !name.endsWith(".eth")) {
-    throw new Error("Malformed ensfairy-appraisals.json: each name must end in .eth");
-  }
-
-  return name.slice(0, -4);
-});
+if (!Array.isArray(seed.pools)) throw new Error("Malformed ensfairy-seed.json — run scripts/precompute-ensfairy-seed.mjs");
 
 // The target may be a `just fork` anvil (chain id 31337) or a plain mainnet
 // fork (chain id 1) — skip viem's declared-chain assertion and let the node
@@ -43,50 +32,43 @@ const client = createTestClient({ mode: "anvil", transport: http(rpcUrl, { timeo
   .extend(publicActions)
   .extend(walletActions);
 
-const send = async (request) => {
-  const hash = await client.writeContract({ account: testAccount, chain: null, ...request });
+const submit = async (to, data) => {
+  // viem requires a literal null (not undefined) to skip its declared-chain
+  // assertion — the fork answers as 31337 or 1 depending on how it was started.
+  // eslint-disable-next-line unicorn/no-null
+  const hash = await client.sendTransaction({ account: testAccount, chain: null, data, to });
 
   await client.waitForTransactionReceipt({ hash });
 
   return hash;
 };
 
-const createSeededPool = async (labels) => {
-  const createHash = await send({ abi: factoryAbi, address: factoryAddress, args: [testAccount], functionName: "createPool" });
+const seedPool = async (poolSeed) => {
+  const createHash = await submit(factoryAddress, seed.createPoolData);
   const receipt = await client.getTransactionReceipt({ hash: createHash });
-  const created = parseEventLogs({ abi: factoryAbi, eventName: "PoolCreated", logs: receipt.logs }).at(0);
+  const created = parseEventLogs({ abi: factoryEventAbi, eventName: "PoolCreated", logs: receipt.logs }).at(0);
 
   if (!created) throw new Error("PoolCreated event missing");
 
   const pool = created.args.pool;
 
-  await send({
-    abi: poolAbi,
-    address: pool,
-    args: [31_536_000n, 2_592_000n, 15_000_000_000n, 0n, 0n],
-    functionName: "configurePool",
-  });
+  await submit(pool, seed.configurePoolData);
 
-  for (let index = 0; index < labels.length; index += 100) {
-    await send({
-      abi: poolAbi,
-      address: pool,
-      args: [labels.slice(index, index + 100), []],
-      functionName: "updateLabels",
-    });
+  for (const batch of poolSeed.updateBatches) {
+    await submit(pool, batch);
   }
 
-  const stored = await client.readContract({ abi: poolAbi, address: pool, functionName: "getLabels" });
+  const stored = await client.readContract({ abi: poolReadAbi, address: pool, functionName: "getLabels" });
 
-  if (stored.length !== labels.length) throw new Error(`Pool ${pool} stored ${stored.length}/${labels.length} labels`);
+  if (stored.length !== poolSeed.labelCount) {
+    throw new Error(`Pool ${pool} stored ${stored.length}/${poolSeed.labelCount} labels`);
+  }
 
   return pool;
 };
 
-const appraised = await createSeededPool(appraisedLabels);
-const top200 = await createSeededPool(names.top200);
-const all = await createSeededPool(names.all);
+for (const poolSeed of seed.pools) {
+  const pool = await seedPool(poolSeed);
 
-console.log(`APPRAISED=${appraised}`);
-console.log(`TOP200=${top200}`);
-console.log(`ALL=${all}`);
+  console.log(`${poolSeed.key.toUpperCase()}=${pool}`);
+}

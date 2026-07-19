@@ -86,32 +86,9 @@ console.log(`${candidates.length} subgraph candidates → ${verified.length} ver
 
 const unique = verified;
 
-// Best 200 by name quality: pure lowercase alphabetics beat alphanumerics
-// beat everything else; shorter beats longer within a class.
-const classPenalty = (label) => {
-  if (/^[a-z]+$/.test(label)) return 0;
-
-  if (/^[a-z0-9]+$/.test(label)) return 1;
-
-  return 2;
-};
-
-const ranked = [...unique].sort((first, second) => {
-  const byClass = classPenalty(first.labelName) - classPenalty(second.labelName);
-
-  if (byClass !== 0) return byClass;
-
-  const byLength = first.labelName.length - second.labelName.length;
-
-  if (byLength !== 0) return byLength;
-
-  return first.labelName.localeCompare(second.labelName);
-});
-
 const output = {
   all: unique.map(entry => entry.labelName).sort((a, b) => a.localeCompare(b)),
   fetchedAt: new Date().toISOString(),
-  top200: ranked.slice(0, 200).map(entry => entry.labelName),
 };
 
 writeFileSync(
@@ -119,4 +96,4 @@ writeFileSync(
   `${JSON.stringify(output, undefined, 2)}\n`,
 );
 
-console.log(`ensfairy holds ${output.all.length} renewable names; wrote top ${output.top200.length}`);
+console.log(`ensfairy holds ${output.all.length} renewable names`);

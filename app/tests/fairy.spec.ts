@@ -43,12 +43,12 @@ test("marks fairy-held names and lists the seeded fairy pools", async ({ page })
 
   // Seeded fairy pools show up with their labels and real member lists
   await page.goto("/pools");
-  await expect(page.getByText("ensfairy top 200")).toBeVisible();
+  await expect(page.getByText("ensfairy appraised")).toBeVisible();
   await expect(page.getByText("ensfairy all")).toBeVisible();
 
-  const top200Labels = await client.readContract({
+  const appraisedLabels = await client.readContract({
     abi: poolAbi,
-    address: fixtures.fairyPools.top200,
+    address: fixtures.fairyPools.appraised,
     functionName: "getLabels",
   });
   const allLabels = await client.readContract({
@@ -57,8 +57,8 @@ test("marks fairy-held names and lists the seeded fairy pools", async ({ page })
     functionName: "getLabels",
   });
 
-  expect(top200Labels).toHaveLength(200);
-  expect(allLabels.length).toBeGreaterThan(200);
+  expect(appraisedLabels.length).toBeGreaterThan(0);
+  expect(allLabels.length).toBeGreaterThan(appraisedLabels.length);
 
   // Return the gift so later specs see the fixture ownership they expect
   await client.impersonateAccount({ address: ensfairyAddress });

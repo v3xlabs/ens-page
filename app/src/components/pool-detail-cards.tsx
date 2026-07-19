@@ -2,6 +2,7 @@ import { TbOutlineCheck, TbOutlinePencil } from "solid-icons/tb";
 import { createMemo, createSignal, For, Show } from "solid-js";
 
 import { type Pool, type PoolDeposit, usePools } from "../hooks/usePools";
+import { zorbImageDataURI } from "../utils/zorb";
 import { formatEth } from "./pool-card";
 import { depositMethodStyle, formatDepositDate } from "./pool-format";
 
@@ -151,12 +152,7 @@ export const PoolFundingHistoryCard = (properties: { deposits: PoolDeposit[]; })
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const InitialsCircle = (properties: { name: string; }) => (
-  <span
-    aria-hidden="true"
-    class="grid size-8 shrink-0 place-items-center rounded-full bg-background-disabled text-[0.625rem] font-bold text-text-secondary"
-  >
-    {properties.name.slice(0, 2).toUpperCase()}
-  </span>
+  <img alt="" aria-hidden="true" class="size-8 shrink-0 rounded-full" src={zorbImageDataURI(properties.name)} />
 );
 
 type PendingRow = {

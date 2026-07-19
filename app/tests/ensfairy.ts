@@ -1,106 +1,116 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { type Address, parseAbi, parseEventLogs } from "viem";
-import { mainnet } from "viem/chains";
+import { type Address, type Hex, isHex, parseAbi, parseEventLogs } from "viem";
 
 import type { ForkClient } from "./anvil";
 import { testAccountAddress } from "./ens";
 
 export type EnsfairyPools = {
   all: Address;
-  top200: Address;
+  appraised: Address;
 };
 
-const factorySeedAbi = parseAbi([
-  "function createPool(address poolOwner) returns (address pool)",
+type PoolSeed = {
+  key: "all" | "appraised";
+  label: string;
+  labelCount: number;
+  updateBatches: Hex[];
+};
+
+type SeedPayloads = {
+  configurePoolData: Hex;
+  createPoolData: Hex;
+  pools: PoolSeed[];
+};
+
+const factoryEventAbi = parseAbi([
   "event PoolCreated(address indexed pool, address indexed poolOwner)",
 ]);
 
-const poolSeedAbi = parseAbi([
-  "function configurePool(uint64 duration, uint64 threshold, uint256 gasPriceCap, uint256 rewardCap, uint256 premium)",
-  "function updateLabels(string[] additions, string[] removals)",
+const poolReadAbi = parseAbi([
   "function getLabels() view returns (string[])",
 ]);
 
-const namesPath = fileURLToPath(new URL("../scripts/ensfairy-names.json", import.meta.url));
+const seedPath = fileURLToPath(new URL("../scripts/ensfairy-seed.json", import.meta.url));
 
-const asLabels = (values: unknown[]): string[] => values.filter((value): value is string => typeof value === "string");
+const isPoolSeed = (raw: unknown): raw is PoolSeed => {
+  if (typeof raw !== "object" || raw === null) return false;
 
-export const readEnsfairyNames = (): { all: string[]; top200: string[]; } => {
-  const raw: unknown = JSON.parse(readFileSync(namesPath, "utf8"));
+  const candidate = raw as Partial<PoolSeed>;
+
+  return (candidate.key === "all" || candidate.key === "appraised")
+    && typeof candidate.label === "string"
+    && typeof candidate.labelCount === "number"
+    && Array.isArray(candidate.updateBatches)
+    && candidate.updateBatches.every(batch => isHex(batch));
+};
+
+const readSeedPayloads = (): SeedPayloads => {
+  const raw: unknown = JSON.parse(readFileSync(seedPath, "utf8"));
 
   if (
     typeof raw !== "object"
     || raw === null
-    || !("all" in raw)
-    || !("top200" in raw)
-    || !Array.isArray(raw.all)
-    || !Array.isArray(raw.top200)
+    || !("createPoolData" in raw)
+    || !("configurePoolData" in raw)
+    || !("pools" in raw)
+    || !isHex(raw.createPoolData)
+    || !isHex(raw.configurePoolData)
+    || !Array.isArray(raw.pools)
+    || !raw.pools.every(pool => isPoolSeed(pool))
   ) {
-    throw new Error("Malformed ensfairy-names.json — run scripts/fetch-ensfairy-names.mjs");
+    throw new Error("Malformed ensfairy-seed.json — run scripts/precompute-ensfairy-seed.mjs");
   }
 
-  return { all: asLabels(raw.all), top200: asLabels(raw.top200) };
+  return { configurePoolData: raw.configurePoolData, createPoolData: raw.createPoolData, pools: raw.pools };
 };
 
-const createSeededPool = async (client: ForkClient, factory: Address, labels: string[]): Promise<Address> => {
-  const createHash = await client.writeContract({
-    abi: factorySeedAbi,
-    account: testAccountAddress,
-    address: factory,
-    args: [testAccountAddress],
-    chain: mainnet,
-    functionName: "createPool",
-  });
-  const receipt = await client.waitForTransactionReceipt({ hash: createHash });
-  const created = parseEventLogs({ abi: factorySeedAbi, eventName: "PoolCreated", logs: receipt.logs }).at(0);
+const submit = async (client: ForkClient, to: Address, data: Hex): Promise<Hex> => {
+  const hash = await client.sendTransaction({ account: testAccountAddress, data, to });
+
+  await client.waitForTransactionReceipt({ hash });
+
+  return hash;
+};
+
+const seedPool = async (client: ForkClient, factory: Address, payloads: SeedPayloads, poolSeed: PoolSeed): Promise<Address> => {
+  const createHash = await submit(client, factory, payloads.createPoolData);
+  const receipt = await client.getTransactionReceipt({ hash: createHash });
+  const created = parseEventLogs({ abi: factoryEventAbi, eventName: "PoolCreated", logs: receipt.logs }).at(0);
 
   if (!created) throw new Error("Pool creation did not emit a PoolCreated event");
 
   const pool = created.args.pool;
 
-  const configureHash = await client.writeContract({
-    abi: poolSeedAbi,
-    account: testAccountAddress,
-    address: pool,
-    args: [31_536_000n, 2_592_000n, 15_000_000_000n, 0n, 0n],
-    chain: mainnet,
-    functionName: "configurePool",
-  });
+  await submit(client, pool, payloads.configurePoolData);
 
-  await client.waitForTransactionReceipt({ hash: configureHash });
-
-  for (let index = 0; index < labels.length; index += 100) {
-    const updateHash = await client.writeContract({
-      abi: poolSeedAbi,
-      account: testAccountAddress,
-      address: pool,
-      args: [labels.slice(index, index + 100), []],
-      chain: mainnet,
-      functionName: "updateLabels",
-    });
-
-    await client.waitForTransactionReceipt({ hash: updateHash });
+  for (const batch of poolSeed.updateBatches) {
+    await submit(client, pool, batch);
   }
 
-  const stored = await client.readContract({ abi: poolSeedAbi, address: pool, functionName: "getLabels" });
+  const stored = await client.readContract({ abi: poolReadAbi, address: pool, functionName: "getLabels" });
 
-  if (stored.length !== labels.length) {
-    throw new Error(`Fairy pool ${pool} stored ${stored.length}/${labels.length} labels`);
+  if (stored.length !== poolSeed.labelCount) {
+    throw new Error(`Fairy pool ${pool} stored ${stored.length}/${poolSeed.labelCount} labels`);
   }
 
   return pool;
 };
 
 export const seedEnsfairyPools = async (client: ForkClient, factory: Address): Promise<EnsfairyPools> => {
-  const names = readEnsfairyNames();
+  const payloads = readSeedPayloads();
+  const byKey = new Map(payloads.pools.map(pool => [pool.key, pool]));
+  const appraised = byKey.get("appraised");
+  const all = byKey.get("all");
+
+  if (!appraised || !all) throw new Error("ensfairy-seed.json is missing a pool entry");
 
   return {
-    all: await createSeededPool(client, factory, names.all),
-    top200: await createSeededPool(client, factory, names.top200),
+    all: await seedPool(client, factory, payloads, all),
+    appraised: await seedPool(client, factory, payloads, appraised),
   };
 };
 
 export const seedPoolLabelsEnv = (pools: EnsfairyPools): string =>
-  `${pools.top200}:ensfairy top 200;${pools.all}:ensfairy all`;
+  `${pools.appraised}:ensfairy appraised;${pools.all}:ensfairy all`;

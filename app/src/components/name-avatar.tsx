@@ -1,6 +1,7 @@
 import { ErrorBoundary, Show, Suspense } from "solid-js";
 
 import { useEnsAvatar } from "../hooks/useEnsAvatar";
+import { zorbImageDataURI } from "../utils/zorb";
 
 type AvatarSize = "medium" | "small";
 
@@ -10,17 +11,17 @@ type NameAvatarProperties = {
 };
 
 const sizeClass: Record<AvatarSize, string> = {
-  medium: "size-9 text-[0.6875rem]",
-  small: "size-6 text-[0.5625rem]",
+  medium: "size-9",
+  small: "size-6",
 };
 
 const AvatarPlaceholder = (properties: { name: string; size: AvatarSize; }) => (
-  <span
+  <img
+    alt=""
     aria-hidden="true"
-    class={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-background-disabled font-bold text-text-secondary ${sizeClass[properties.size]}`}
-  >
-    {properties.name.slice(0, 2).toUpperCase()}
-  </span>
+    class={`shrink-0 rounded-full ${sizeClass[properties.size]}`}
+    src={zorbImageDataURI(properties.name)}
+  />
 );
 
 const AvatarImage = (properties: { name: string; size: AvatarSize; }) => {
