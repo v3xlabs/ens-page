@@ -49,6 +49,7 @@ The e2e suite locates elements exclusively through these `data-testid` values. U
 | `wallet-profile` | Navbar profile dropdown trigger shown when connected |
 | `search-input` | Homepage/search-bar text input |
 | `names-search` | Mini filter input on `/names` |
+| `names-filter` | Status filter dropdown on `/names` |
 | `select-mode-toggle` | Select-mode toggle on `/names` |
 | `name-row-<name>` | A name row on `/names` (e.g. `name-row-luc.eth`) |
 | `expired-section-toggle` | Toggle revealing long-expired names |
@@ -74,7 +75,21 @@ The e2e suite locates elements exclusively through these `data-testid` values. U
 | `pool-pending` | Pending (forecast) card in pool detail |
 | `pool-inflows` | Inflows card in pool detail |
 | `pool-fund` / `pool-withdraw` | Funding actions in the pool detail header |
-| `pool-funding-amount` | Amount input inside the funding modal |
+| `fund-choice` | Funding choice dialog shown before the transaction flow |
+| `fund-tab-token` / `fund-tab-stream` | Tabs inside the funding choice dialog |
+| `fund-token-select` / `fund-amount` / `fund-duration` | Funding choice inputs |
+| `fund-review` | Advances from the funding choice to the transaction review |
+| `pool-funding-amount` | Amount input inside the withdraw modal |
+| `pool-adapters` | Adapters section inside the pool configuration card |
+| `adapters-edit` | Enters the staged adapters/routes edit mode (owner) |
+| `adapter-check-<kind>` | Enable checkbox for an adapter in edit mode (`swap`, `yield`, `stream`) |
+| `route-kind-<symbol>` / `route-fee-<symbol>` / `route-guard-<symbol>` / `route-floor-<symbol>` | Per-token route fields in edit mode |
+| `adapters-save` | Reviews all staged adapter/route changes as one transaction |
+| `route-convert-<symbol>` | Executes a configured route over the pool's token balance |
+| `add-token-input` / `add-token-submit` | Tracks an arbitrary ERC20 (metadata probed on-chain, 4626 vaults detected) |
+| `token-remove-<symbol>` | Stops tracking a custom token |
+| `pool-streams` | Streams card on the funding tab |
+| `stream-claim-<streamId>` | Claim button for a stream's accrued amount |
 | `pool-config-edit` / `pool-config-save` | Pool configuration edit toggle and save |
 | `pool-config-duration` / `pool-config-gas` / `pool-config-premium` | Pool configuration number inputs |
 | `pool-config-window` | Renewal-window slider (`input[type=range]`, stops 10/20/30/60/90/180/365 days; value is the stop index) |
@@ -86,4 +101,5 @@ The e2e suite locates elements exclusively through these `data-testid` values. U
 | `edit-records` | "Edit records" button on `/$name` |
 | `record-input-<key>` | A record input on `/$name/edit` (e.g. `record-input-description`) |
 | `edit-save` / `edit-reset` | Save and reset actions on `/$name/edit` |
+| `fairy-badge-<name>` | ensfairy.eth avatar shown beside names the fairy holds (available for adoption) |
 | `activity-flow-<activityId>` | An in-progress flow card on the activity page |

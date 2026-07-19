@@ -34,10 +34,24 @@ fork:
     cast chain-id --rpc-url "$anvil_rpc_url" >/dev/null
     cast rpc anvil_setBalance "$test_account" "0x21e19e0c9bab2400000" --rpc-url "$anvil_rpc_url" >/dev/null
     cast rpc anvil_setBalance "$funded_account" "0x21e19e0c9bab2400000" --rpc-url "$anvil_rpc_url" >/dev/null
+    swap_router="0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+    weth="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+    eth_usd_feed="0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
     ultra_bulk=$(cd contracts && forge create --broadcast --json --rpc-url "$anvil_rpc_url" --unlocked --from "$test_account" src/UltraBulk.sol:UltraBulk --constructor-args "$eth_controller" | node -e 'let output=""; process.stdin.on("data", chunk => { output += chunk; }); process.stdin.on("end", () => { console.log(JSON.parse(output).deployedTo); });')
     factory=$(cd contracts && forge create --broadcast --json --rpc-url "$anvil_rpc_url" --unlocked --from "$test_account" src/RenewalPoolFactory.sol:RenewalPoolFactory --constructor-args "$test_account" | node -e 'let output=""; process.stdin.on("data", chunk => { output += chunk; }); process.stdin.on("end", () => { console.log(JSON.parse(output).deployedTo); });')
+    swap_adapter=$(cd contracts && forge create --broadcast --json --rpc-url "$anvil_rpc_url" --unlocked --from "$test_account" src/adapters/SwapAdapter.sol:SwapAdapter --constructor-args "$swap_router" "$weth" "$eth_usd_feed" | node -e 'let output=""; process.stdin.on("data", chunk => { output += chunk; }); process.stdin.on("end", () => { console.log(JSON.parse(output).deployedTo); });')
+    yield_adapter=$(cd contracts && forge create --broadcast --json --rpc-url "$anvil_rpc_url" --unlocked --from "$test_account" src/adapters/YieldAdapter.sol:YieldAdapter | node -e 'let output=""; process.stdin.on("data", chunk => { output += chunk; }); process.stdin.on("end", () => { console.log(JSON.parse(output).deployedTo); });')
+    stream_adapter=$(cd contracts && forge create --broadcast --json --rpc-url "$anvil_rpc_url" --unlocked --from "$test_account" src/adapters/StreamAdapter.sol:StreamAdapter | node -e 'let output=""; process.stdin.on("data", chunk => { output += chunk; }); process.stdin.on("end", () => { console.log(JSON.parse(output).deployedTo); });')
     cast send --unlocked --from "$test_account" --rpc-url "$anvil_rpc_url" "$factory" "setProtocolContracts(address,address)" "$ultra_bulk" "$base_registrar" >/dev/null
-    cast send --unlocked --from "$test_account" --rpc-url "$anvil_rpc_url" "$factory" "setDurationAllowed(uint256,bool)" 31536000 true >/dev/null
-    printf 'VITE_ANVIL_RPC_URL=%s\nVITE_RENEWAL_POOL_FACTORY_ADDRESS=%s\n' "$anvil_rpc_url" "$factory" > app/.env.local
-    printf 'Anvil fork ready at %s\nRenewalPoolFactory: %s\n' "$anvil_rpc_url" "$factory"
+    for days in 10 20 30 60 90 180 365 730; do
+        cast send --unlocked --from "$test_account" --rpc-url "$anvil_rpc_url" "$factory" "setDurationAllowed(uint256,bool)" $((days * 86400)) true >/dev/null
+    done
+    for adapter in "$swap_adapter" "$yield_adapter" "$stream_adapter"; do
+        cast send --unlocked --from "$test_account" --rpc-url "$anvil_rpc_url" "$factory" "setAdapterAllowed(address,bool)" "$adapter" true >/dev/null
+    done
+    seed_output=$(cd app && node scripts/seed-ensfairy-pools.mjs "$anvil_rpc_url" "$factory")
+    top200_pool=$(printf '%s\n' "$seed_output" | sed -n 's/^TOP200=//p')
+    all_pool=$(printf '%s\n' "$seed_output" | sed -n 's/^ALL=//p')
+    printf 'VITE_ANVIL_RPC_URL=%s\nVITE_RENEWAL_POOL_FACTORY_ADDRESS=%s\nVITE_SEED_POOL_LABELS=%s:ensfairy top 200;%s:ensfairy all\n' "$anvil_rpc_url" "$factory" "$top200_pool" "$all_pool" > app/.env.local
+    printf 'Anvil fork ready at %s\nRenewalPoolFactory: %s\nAdapters: swap=%s yield=%s stream=%s\nFairy pools: top200=%s all=%s\n' "$anvil_rpc_url" "$factory" "$swap_adapter" "$yield_adapter" "$stream_adapter" "$top200_pool" "$all_pool"
     wait "$anvil_pid"

@@ -5,6 +5,7 @@ import { createMemo, createSignal, For, Show } from "solid-js";
 import { Page } from "../components/page";
 import { PoolCard } from "../components/pool-card";
 import { TransactionModal, type TransactionSummaryRow } from "../components/transaction-modal";
+import { seedPoolLabels } from "../config";
 import { useOwnedNames } from "../hooks/useOwnedNames";
 import { usePools } from "../hooks/usePools";
 import { useRenewalPoolFactory } from "../hooks/useRenewalPools";
@@ -44,7 +45,7 @@ export const PoolsPage = () => {
         gasCeilingGwei: 15,
         hasStreaming: false,
         hasUsdcSwap: false,
-        label: `Pool ${poolId.slice(0, 6)}…${poolId.slice(-4)}`,
+        label: seedPoolLabels[poolId.toLowerCase()] ?? `Pool ${poolId.slice(0, 6)}…${poolId.slice(-4)}`,
         members: [],
         poolId,
         renewHorizonDays: 30,

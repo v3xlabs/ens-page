@@ -29,12 +29,11 @@ test("creates, configures, funds, and manages names in an on-chain renewal pool"
       functionName: "getLabels",
     })];
 
-  // A redeployed fork mints the first pool at the same CREATE address as the
-  // previous session — seed a stale store entry there to prove creation
-  // overwrites it instead of resurrecting the old label. The factory's
-  // constructor deploys the default implementation (nonce 1), so the first
-  // pool clone is its second CREATE.
-  const predictedPoolAddress = getContractAddress({ from: fixtures.poolFactoryAddress, nonce: 2n });
+  // A redeployed fork mints pools at the same CREATE addresses as the
+  // previous session — seed a stale store entry at the next pool address to
+  // prove creation overwrites it instead of resurrecting the old label.
+  const factoryNonce = await client.getTransactionCount({ address: fixtures.poolFactoryAddress });
+  const predictedPoolAddress = getContractAddress({ from: fixtures.poolFactoryAddress, nonce: BigInt(factoryNonce) });
 
   await page.addInitScript((stalePool) => {
     if (!globalThis.localStorage.getItem("ens-manager-pools")) {
@@ -144,9 +143,11 @@ test("creates, configures, funds, and manages names in an on-chain renewal pool"
   await expect.poll(() => readLabels(poolAddress)).toEqual([soon.label]);
   await expect(page.getByText(grace.name, { exact: true })).not.toBeVisible();
 
-  // Fund the pool with 0.5 ETH
+  // Fund the pool with 0.5 ETH through the token tab
   await page.getByTestId("pool-fund").click();
-  await page.getByTestId("pool-funding-amount").fill("0.5");
+  await page.getByTestId("fund-amount").fill("0.5");
+  await page.getByTestId("fund-review").click();
+  await expect(page.getByTestId("tx-modal")).toBeVisible();
   await page.getByTestId("tx-confirm").click();
   await expect(page.getByTestId("tx-done")).toBeVisible({ timeout: 120_000 });
   await page.getByTestId("tx-done").click();

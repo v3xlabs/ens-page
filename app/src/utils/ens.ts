@@ -5,6 +5,13 @@ import { encodeFunctionData } from "viem/utils";
 // Same singleton on every chain ENS is deployed to, including Sepolia.
 export const ENS_REGISTRY_ADDRESS: Address = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
 
+export const BASE_REGISTRAR_ADDRESS: Address = "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85";
+
+// The name-donation public good: names it holds are up for adoption.
+export const ENSFAIRY_ADDRESS: Address = "0x481f50a5BdcCC0bc4322C4dca04301433dED50f0";
+
+export const ENSFAIRY_NAME = "ensfairy.eth";
+
 export const normalizeName = (name: string) => {
   try {
     return normalize(name.trim());

@@ -7,41 +7,46 @@ import { depositMethodStyle, formatDepositDate } from "./pool-format";
 
 export const RENEWAL_WINDOW_STOPS_DAYS = [10, 20, 30, 60, 90, 180, 365] as const;
 
-const nearestStopIndex = (days: number) => {
+export const RENEWAL_DURATION_STOPS_DAYS = [10, 20, 30, 60, 90, 180, 365, 730] as const;
+
+const nearestStopIndex = (stops: readonly number[], value: number) => {
   let bestIndex = 0;
 
-  for (const [index, stop] of RENEWAL_WINDOW_STOPS_DAYS.entries()) {
-    if (Math.abs(stop - days) < Math.abs(RENEWAL_WINDOW_STOPS_DAYS[bestIndex] - days)) bestIndex = index;
+  for (const [index, stop] of stops.entries()) {
+    if (Math.abs(stop - value) < Math.abs(stops[bestIndex] - value)) bestIndex = index;
   }
 
   return bestIndex;
 };
 
-export const RenewalWindowSlider = (properties: { onChange: (days: number) => void; valueDays: number; }) => {
-  const stopIndex = createMemo(() => nearestStopIndex(properties.valueDays));
+export const ConfigStopSlider = (properties: {
+  format: (stop: number) => string;
+  label: string;
+  onChange: (stop: number) => void;
+  stops: readonly number[];
+  testId: string;
+  value: number;
+}) => {
+  const stopIndex = createMemo(() => nearestStopIndex(properties.stops, properties.value));
 
   return (
     <label class="grid gap-1 text-sm font-bold text-text-secondary">
       <span class="flex items-baseline justify-between gap-3">
-        Renewal window
-        <span class="tabular-nums text-text-primary">
-          {RENEWAL_WINDOW_STOPS_DAYS[stopIndex()]}
-          {" "}
-          days before expiry
-        </span>
+        {properties.label}
+        <span class="tabular-nums text-text-primary">{properties.format(properties.stops[stopIndex()])}</span>
       </span>
       <input
         class="w-full accent-blue-primary"
-        data-testid="pool-config-window"
-        max={RENEWAL_WINDOW_STOPS_DAYS.length - 1}
+        data-testid={properties.testId}
+        max={properties.stops.length - 1}
         min="0"
-        onInput={event => properties.onChange(RENEWAL_WINDOW_STOPS_DAYS[Number(event.currentTarget.value)] ?? 30)}
+        onInput={event => properties.onChange(properties.stops[Number(event.currentTarget.value)] ?? properties.stops[0])}
         step="1"
         type="range"
         value={stopIndex()}
       />
       <span class="flex justify-between text-[0.65rem] font-bold text-text-secondary">
-        <For each={[...RENEWAL_WINDOW_STOPS_DAYS]}>
+        <For each={[...properties.stops]}>
           {stop => <span class="tabular-nums">{stop}</span>}
         </For>
       </span>

@@ -3,6 +3,7 @@ import { useConnection } from "@wagmi/solid";
 import { TbOutlineCopy, TbOutlinePencil } from "solid-icons/tb";
 import { createEffect, createMemo, For, Show, Suspense } from "solid-js";
 
+import { EnsfairyBadge } from "../../components/ensfairy-badge";
 import { Page } from "../../components/page";
 import { ProfileAddress, ProfileAvatar, ProfileBanner, ProfileDetails } from "../../components/profile";
 import { useCanEditName } from "../../hooks/useCanEditName";
@@ -81,7 +82,10 @@ export const NamePage = () => {
                   </Suspense>
 
                   <div class="min-w-0 rounded-md bg-background-primary px-2">
-                    <h2 class="text-2xl font-bold">{nameValue()}</h2>
+                    <div class="flex items-center gap-2">
+                      <h2 class="text-2xl font-bold">{nameValue()}</h2>
+                      <EnsfairyBadge name={nameValue()} />
+                    </div>
                     <Suspense fallback={<SkeletonBar class="h-4 w-24" />}>
                       <ProfileAddress name={nameValue()} />
                     </Suspense>

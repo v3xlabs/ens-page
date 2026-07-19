@@ -3,6 +3,7 @@ import { createMemo, Show } from "solid-js";
 
 import { Page } from "../components/page";
 import { PoolDetail } from "../components/pool-detail";
+import { seedPoolLabels } from "../config";
 import { usePools } from "../hooks/usePools";
 import { useRenewalPoolFactory } from "../hooks/useRenewalPools";
 
@@ -30,7 +31,7 @@ export const PoolPage = () => {
       gasCeilingGwei: 15,
       hasStreaming: false,
       hasUsdcSwap: false,
-      label: `Pool ${poolId.slice(0, 6)}…${poolId.slice(-4)}`,
+      label: seedPoolLabels[poolId.toLowerCase()] ?? `Pool ${poolId.slice(0, 6)}…${poolId.slice(-4)}`,
       members: [],
       poolId,
       renewHorizonDays: 30,

@@ -158,21 +158,13 @@ export const NamesPage = () => {
     setPageIndex(0);
   };
 
-  const FilterChip = (properties: { count: number; filter: StatusFilter; label: string; }) => (
-    <button
-      aria-pressed={statusFilter() === properties.filter}
-      classList={{
-        "border-blue-light bg-blue-surface text-blue-primary": statusFilter() === properties.filter,
-        "border-border bg-background-primary text-text-secondary hover:text-text-primary": statusFilter() !== properties.filter,
-        "cursor-pointer rounded-full border px-3 py-1 text-sm font-bold transition-colors": true,
-      }}
-      onClick={() => handleFilterChange(properties.filter)}
-      type="button"
-    >
-      {properties.label}
-      <span class="ml-1.5 tabular-nums">{properties.count}</span>
-    </button>
-  );
+  const filterOptions = createMemo((): { filter: StatusFilter; label: string; }[] => [
+    { filter: "all", label: `All (${activeNames().length})` },
+    { filter: "soon", label: `Expiring soon (${soonCount()})` },
+    { filter: "grace", label: `In grace (${graceCount()})` },
+    { filter: "pooled", label: `In a pool (${pooledCount()})` },
+    { filter: "hidden", label: `Hidden (${hiddenCount()})` },
+  ]);
 
   return (
     <div class="space-y-5">
@@ -202,6 +194,21 @@ export const NamesPage = () => {
 
       <section class="space-y-3">
         <div class="flex items-center gap-2">
+          <button
+            aria-pressed={selectMode()}
+            classList={{
+              "button": true,
+              "primary": selectMode(),
+              "subtle": !selectMode(),
+              "h-14!": true,
+            }}
+            data-testid="select-mode-toggle"
+            onClick={() => setSelectMode(previous => !previous)}
+            type="button"
+          >
+            <TbOutlineCheck aria-hidden="true" size={16} />
+            Select
+          </button>
           <input
             class="input flex-1"
             data-testid="names-search"
@@ -211,21 +218,7 @@ export const NamesPage = () => {
             value={filterQuery()}
           />
           <button
-            aria-pressed={selectMode()}
-            classList={{
-              button: true,
-              primary: selectMode(),
-              subtle: !selectMode(),
-            }}
-            data-testid="select-mode-toggle"
-            onClick={() => setSelectMode(previous => !previous)}
-            type="button"
-          >
-            <TbOutlineCheck aria-hidden="true" size={16} />
-            Select
-          </button>
-          <button
-            class="icon-button size-10"
+            class="icon-button size-14!"
             disabled={isLoading()}
             onClick={() => void handleRefresh()}
             title="Fetch names from the ENS subgraph"
@@ -233,14 +226,21 @@ export const NamesPage = () => {
           >
             <TbOutlineRefresh class={isLoading() ? "animate-spin" : ""} size={20} />
           </button>
-        </div>
+          <select
+            aria-label="Filter by status"
+            class="h-14 cursor-pointer rounded-button border border-border bg-background-secondary px-3 py-2 font-bold"
+            data-testid="names-filter"
+            onChange={(event) => {
+              const selected = filterOptions().find(option => option.filter === event.currentTarget.value);
 
-        <div class="flex flex-wrap items-center gap-2">
-          <FilterChip count={activeNames().length} filter="all" label="All" />
-          <FilterChip count={soonCount()} filter="soon" label="Expiring soon" />
-          <FilterChip count={graceCount()} filter="grace" label="In grace" />
-          <FilterChip count={pooledCount()} filter="pooled" label="In a pool" />
-          <FilterChip count={hiddenCount()} filter="hidden" label="Hidden" />
+              if (selected) handleFilterChange(selected.filter);
+            }}
+            value={statusFilter()}
+          >
+            <For each={filterOptions()}>
+              {option => <option value={option.filter}>{option.label}</option>}
+            </For>
+          </select>
         </div>
 
         <Show when={selectMode()}>

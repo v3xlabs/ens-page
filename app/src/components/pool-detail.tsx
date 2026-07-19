@@ -1,11 +1,12 @@
 import { useBalance, useConnection } from "@wagmi/solid";
-import { TbOutlineCopy, TbOutlineExternalLink, TbOutlinePencil } from "solid-icons/tb";
+import { TbOutlineCopy, TbOutlineExternalLink } from "solid-icons/tb";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { formatEther, getAddress, isAddress, parseEther, parseGwei } from "viem";
+import { formatEther, getAddress, isAddress, parseEther } from "viem";
 
 import { useEnsName } from "../hooks/useEnsName";
 import { useNameExpiries } from "../hooks/useNameExpiries";
 import { useOwnedNames } from "../hooks/useOwnedNames";
+import { usePoolAdapters, usePoolStreams } from "../hooks/usePoolAdapters";
 import { type Pool, usePools } from "../hooks/usePools";
 import { useRenewalPool } from "../hooks/useRenewalPools";
 import { useTransaction } from "../hooks/useTransaction";
@@ -20,36 +21,29 @@ import {
   runwayPercent,
   useYearlyCostsEth,
 } from "./pool-card";
-import { InitialsCircle, PoolFundingHistoryCard, PoolLabelEditor, PoolPendingCard, RenewalWindowSlider } from "./pool-detail-cards";
+import { PoolConfigCard } from "./pool-config-card";
+import {
+  InitialsCircle,
+  PoolFundingHistoryCard,
+  PoolLabelEditor,
+  PoolPendingCard,
+} from "./pool-detail-cards";
 import { PoolDetailTabs } from "./pool-detail-tabs";
-import { buildConfigSummary, buildFundingSummary, copyAddress, formatExpiryDate } from "./pool-format";
+import { buildFundingSummary, copyAddress, formatExpiryDate } from "./pool-format";
+import { PoolFundFlow } from "./pool-fund-flow";
 import { PoolFundingModal } from "./pool-funding-modal";
 import { PoolNamesEditor } from "./pool-names-editor";
-import { TransactionModal } from "./transaction-modal";
-
-const ConfigField = (properties: { label: string; onInput: (value: string) => void; testId: string; value: string; }) => (
-  <label class="grid gap-1 text-sm font-bold text-text-secondary">
-    {properties.label}
-    <input class="input tabular-nums" data-testid={properties.testId} min="0" onInput={event => properties.onInput(event.currentTarget.value)} step="any" type="number" value={properties.value} />
-  </label>
-);
+import { PoolStreamsCard } from "./pool-streams-card";
 
 export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
-  const { depositToPool, updatePool } = usePools();
+  const { updatePool } = usePools();
   const connection = useConnection();
   const { getNamesForAddress } = useOwnedNames();
   const transaction = useTransaction();
 
   const [amountInput, setAmountInput] = createSignal("");
-  const [fundingAction, setFundingAction] = createSignal<"deposit" | "withdraw">("deposit");
   const [isFundingOpen, setIsFundingOpen] = createSignal(false);
   const [activeTab, setActiveTab] = createSignal<"overview" | "funding">("overview");
-  const [isConfigEditing, setIsConfigEditing] = createSignal(false);
-  const [isConfigReviewOpen, setIsConfigReviewOpen] = createSignal(false);
-  const [durationYearsInput, setDurationYearsInput] = createSignal("1");
-  const [renewalWindowDaysInput, setRenewalWindowDaysInput] = createSignal("30");
-  const [gasCeilingGweiInput, setGasCeilingGweiInput] = createSignal("15");
-  const [premiumEthInput, setPremiumEthInput] = createSignal("0");
 
   const poolAddress = createMemo(() => (isAddress(properties.pool.poolId) ? getAddress(properties.pool.poolId) : undefined));
   const onchainPool = useRenewalPool(poolAddress);
@@ -58,6 +52,17 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
     address: poolAddress(),
     query: { enabled: poolAddress() !== undefined },
   }));
+  const adapters = usePoolAdapters(poolAddress);
+  const streamAdapterAddress = createMemo(() => adapters.data?.find(adapter => adapter.kind === "stream")?.address);
+  const streams = usePoolStreams(streamAdapterAddress, poolAddress);
+
+  const monthlyStreamEth = createMemo(() => {
+    const nowSeconds = Date.now() / 1000;
+
+    return (streams.data ?? [])
+      .filter(stream => stream.token === "0x0000000000000000000000000000000000000000" && nowSeconds < stream.stopTime)
+      .reduce((sum, stream) => sum + (Number(formatEther(stream.totalAmount)) / (stream.stopTime - stream.startTime)) * 2_592_000, 0);
+  });
 
   const ownedNameSet = createMemo(() => new Set(
     getNamesForAddress(connection().address).map(owned => owned.name.toLowerCase()),
@@ -119,30 +124,6 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
     return value;
   };
 
-  const handleTopUp = async () => {
-    const amountEth = parsedAmountEth();
-
-    if (amountEth === undefined) return;
-
-    const address = poolAddress();
-
-    if (address) {
-      const hash = await transaction.send({ data: "0x", to: address, value: parseEther(String(amountEth)) });
-
-      if (!hash) return;
-
-      await onchainBalance.refetch();
-      depositToPool(properties.pool.poolId, amountEth, "direct");
-      setAmountInput("");
-
-      return;
-    }
-
-    depositToPool(properties.pool.poolId, amountEth, "direct");
-    setAmountInput("");
-    closeFunding();
-  };
-
   const handleWithdraw = async () => {
     const amountEth = parsedAmountEth();
 
@@ -170,8 +151,7 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
     closeFunding();
   };
 
-  const openFunding = (action: "deposit" | "withdraw") => {
-    setFundingAction(action);
+  const openWithdraw = () => {
     transaction.preview();
     setIsFundingOpen(true);
   };
@@ -181,91 +161,17 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
     transaction.reset();
   };
 
-  const confirmFunding = async () => {
-    await (fundingAction() === "deposit" ? handleTopUp() : handleWithdraw());
-  };
-
-  const openConfigEditor = () => {
-    // A fresh pool reports renewalDuration 0, which the factory's duration
-    // allow-list always rejects — prefill with the standard year instead.
-    const storedDuration = onchainPool.renewalDuration.data;
-
-    setDurationYearsInput(String(Number(storedDuration && storedDuration > 0n ? storedDuration : 31_536_000n) / 31_536_000));
-    setRenewalWindowDaysInput(String(Number(onchainPool.renewalThreshold.data ?? 2_592_000n) / 86_400));
-    setGasCeilingGweiInput(String(Number(onchainPool.gasPriceCap.data ?? 15_000_000_000n) / 1_000_000_000));
-    setPremiumEthInput(formatEther(onchainPool.premium.data ?? 0n));
-    setIsConfigEditing(true);
-  };
-
-  const savePoolConfig = () => {
-    const durationYears = Number(durationYearsInput());
-    const renewalWindowDays = Number(renewalWindowDaysInput());
-    const gasCeilingGwei = Number(gasCeilingGweiInput());
-
-    if (!Number.isFinite(durationYears) || !Number.isFinite(renewalWindowDays) || !Number.isFinite(gasCeilingGwei)) return;
-
-    transaction.preview();
-    setIsConfigReviewOpen(true);
-  };
-
-  const closeConfigReview = () => {
-    setIsConfigReviewOpen(false);
-    transaction.reset();
-  };
-
-  const confirmConfigSave = async () => {
-    const address = poolAddress();
-
-    if (!address) {
-      updatePool(properties.pool.poolId, pool => ({
-        ...pool,
-        gasCeilingGwei: Number(gasCeilingGweiInput()),
-        renewHorizonDays: Number(renewalWindowDaysInput()),
-      }));
-      closeConfigReview();
-      setIsConfigEditing(false);
-
-      return;
-    }
-
-    const hash = await transaction.send(onchainPool.prepareConfigurePool(
-      BigInt(Number(durationYearsInput()) * 31_536_000),
-      BigInt(Number(renewalWindowDaysInput()) * 86_400),
-      parseGwei(gasCeilingGweiInput()),
-      onchainPool.rewardCap.data ?? 0n,
-      parseEther(premiumEthInput()),
-    ));
-
-    if (!hash) return;
-
-    await Promise.all([
-      onchainPool.gasPriceCap.refetch(),
-      onchainPool.premium.refetch(),
-      onchainPool.renewalDuration.refetch(),
-      onchainPool.renewalThreshold.refetch(),
-    ]);
-    setIsConfigEditing(false);
-  };
-
   const poolDisplay = () => {
     const address = poolAddress();
 
     return address ? shortenAddress(address) : properties.pool.label;
   };
 
-  const configSummary = () => buildConfigSummary({
-    durationYears: durationYearsInput(),
-    gasCeilingGwei: gasCeilingGweiInput(),
-    poolDisplay: poolDisplay(),
-    premiumEth: premiumEthInput(),
-    renewalWindowDays: renewalWindowDaysInput(),
-  });
-
   const fundingSummary = () => {
     const recipient = connection().address;
 
     return buildFundingSummary({
-      action: fundingAction(),
+      action: "withdraw",
       amountEth: amountInput(),
       poolDisplay: poolDisplay(),
       recipient: recipient ? shortenAddress(recipient) : undefined,
@@ -321,7 +227,11 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
               <p class="mt-1 text-sm text-text-secondary">
                 Stream incoming
                 {" "}
-                <span class="font-bold tabular-nums">0 ETH/mo</span>
+                <span class="font-bold tabular-nums">
+                  {monthlyStreamEth().toFixed(4)}
+                  {" "}
+                  ETH/mo
+                </span>
               </p>
               <p class="mt-1 text-sm text-text-secondary tabular-nums">{summaryLine()}</p>
               <div class="mt-2 flex flex-wrap justify-end gap-1.5">
@@ -340,9 +250,9 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
           <div class="flex justify-end items-end gap-4 border-t border-border pt-4">
             <Show when={isConnected()}>
               <div class="flex flex-wrap justify-end items-center gap-2">
-                <button class="button primary" data-testid="pool-fund" onClick={() => openFunding("deposit")} type="button">Fund pool</button>
+                <PoolFundFlow onDeposited={() => void onchainBalance.refetch()} pool={properties.pool} poolAddress={poolAddress} />
                 <Show when={isPoolOwner()}>
-                  <button class="button subtle" data-testid="pool-withdraw" onClick={() => openFunding("withdraw")} type="button">Withdraw</button>
+                  <button class="button subtle" data-testid="pool-withdraw" onClick={openWithdraw} type="button">Withdraw</button>
                 </Show>
               </div>
             </Show>
@@ -398,103 +308,38 @@ export const PoolDetail = (properties: { onBack: () => void; pool: Pool; }) => {
 
             </section>
 
-            <section class="card order-2 p-5 sm:col-start-2">
-              <div class="flex items-center justify-between gap-3">
-                <h3 class="text-lg font-bold">Pool configuration</h3>
-                <Show when={isPoolOwner()}>
-                  <button aria-label="Edit pool configuration" class="icon-button small" data-testid="pool-config-edit" onClick={openConfigEditor} type="button"><TbOutlinePencil size={15} /></button>
-                </Show>
-              </div>
-              <Show
-                when={isConfigEditing()}
-                fallback={(
-                  <div class="mt-4 grid gap-3 text-sm">
-                    <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Renewal duration</span>
-                      <span>
-                        {Number(onchainPool.renewalDuration.data ?? 31_536_000n) / 31_536_000}
-                        {" "}
-                        year
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Renewal window</span>
-                      <span>
-                        {Number(onchainPool.renewalThreshold.data ?? 2_592_000n) / 86_400}
-                        {" "}
-                        days before expiry
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Gas ceiling</span>
-                      <span>
-                        {Number(onchainPool.gasPriceCap.data ?? 15_000_000_000n) / 1_000_000_000}
-                        {" "}
-                        gwei
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between gap-3">
-                      <span class="font-bold text-text-secondary">Relayer premium</span>
-                      <span>
-                        {formatEther(onchainPool.premium.data ?? 0n)}
-                        {" "}
-                        ETH
-                      </span>
-                    </div>
-                  </div>
-                )}
-              >
-                <div class="mt-4 grid gap-3">
-                  <ConfigField label="Renewal duration (years)" testId="pool-config-duration" value={durationYearsInput()} onInput={setDurationYearsInput} />
-                  <RenewalWindowSlider onChange={days => setRenewalWindowDaysInput(String(days))} valueDays={Number(renewalWindowDaysInput())} />
-                  <ConfigField label="Gas ceiling (gwei)" testId="pool-config-gas" value={gasCeilingGweiInput()} onInput={setGasCeilingGweiInput} />
-                  <ConfigField label="Relayer premium (ETH)" testId="pool-config-premium" value={premiumEthInput()} onInput={setPremiumEthInput} />
-                  <div class="flex justify-end gap-2">
-                    <button class="button subtle" onClick={() => setIsConfigEditing(false)} type="button">Cancel</button>
-                    <button class="button primary" data-testid="pool-config-save" onClick={savePoolConfig} type="button">Save</button>
-                  </div>
-                </div>
-              </Show>
-
-              <div class="mt-5 border-t border-border pt-4">
-                <h4 class="font-bold">Adapters</h4>
-                <p class="mt-1 text-sm text-text-secondary">No adapters are enabled. This pool currently accepts ETH only; token deposits and streams require an enabled adapter.</p>
-              </div>
-
-            </section>
+            <PoolConfigCard
+              isOwner={isPoolOwner()}
+              onEthChanged={() => void onchainBalance.refetch()}
+              pool={properties.pool}
+              poolAddress={poolAddress}
+            />
 
           </div>
         </Show>
 
         <Show when={activeTab() === "funding"}>
-          <PoolFundingHistoryCard deposits={sortedDeposits()} />
+          <div class="space-y-4">
+            <PoolStreamsCard
+              onClaimed={() => void onchainBalance.refetch()}
+              streamAdapter={streamAdapterAddress}
+              streams={streams.data ?? []}
+            />
+            <PoolFundingHistoryCard deposits={sortedDeposits()} />
+          </div>
         </Show>
       </div>
 
       <PoolFundingModal
-        action={fundingAction()}
+        action="withdraw"
         amount={amountInput()}
         isOpen={isFundingOpen()}
         onAmountInput={setAmountInput}
         onClose={closeFunding}
-        onConfirm={() => void confirmFunding()}
+        onConfirm={() => void handleWithdraw()}
         state={transaction.state()}
         summary={fundingSummary()}
       />
-
-      <TransactionModal
-        isOpen={isConfigReviewOpen()}
-        onClose={closeConfigReview}
-        onConfirm={() => void confirmConfigSave()}
-        state={transaction.state()}
-        summary={configSummary()}
-        title="Update pool configuration"
-      >
-        <p class="mt-4 text-sm text-text-secondary">
-          Writes the renewal schedule and relayer limits to the pool contract. Relayers can
-          only renew within these bounds.
-        </p>
-      </TransactionModal>
     </>
   );
 };

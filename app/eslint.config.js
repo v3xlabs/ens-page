@@ -5,4 +5,15 @@ export default [
   {
     ignores: [".tanstack/**", "dist/**", "eslint.config.js", "node_modules/**", "src/routeTree.gen.ts"],
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        URL: "readonly",
+        console: "readonly",
+        fetch: "readonly",
+        process: "readonly",
+      },
+    },
+  },
 ];

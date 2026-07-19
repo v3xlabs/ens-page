@@ -24,6 +24,7 @@ contract RenewalPoolFactory is Ownable {
     mapping(address implementation => bool allowed) public isImplementationAllowed;
     mapping(address pool => bool valid) public isPool;
     address[] private allPools;
+    address[] private knownAdapters;
     address public defaultImplementation;
     UltraBulk public ultraBulk;
     IBaseRegistrar public baseRegistrar;
@@ -51,7 +52,10 @@ contract RenewalPoolFactory is Ownable {
             assembly ("memory-safe") {
                 selector := calldataload(callData.offset)
             }
-            if (selector != RenewalPool.renew.selector && selector != RenewalPool.executeModule.selector) {
+            if (
+                selector != RenewalPool.renew.selector && selector != RenewalPool.executeModule.selector
+                    && selector != RenewalPool.renewWithRoute.selector
+            ) {
                 revert InvalidRenewalCall();
             }
             (bool callSucceeded,) = pools[i].call(calls[i]);
@@ -128,8 +132,24 @@ contract RenewalPoolFactory is Ownable {
 
     function setAdapterAllowed(address adapter, bool allowed) external onlyOwner {
         if (adapter == address(0)) revert InvalidAddress();
+        if (allowed && !isAdapterAllowed[adapter] && !_isKnownAdapter(adapter)) {
+            knownAdapters.push(adapter);
+        }
         isAdapterAllowed[adapter] = allowed;
         emit AdapterAllowed(adapter, allowed);
+    }
+
+    /// @notice Every adapter that has ever been allowed; check `isAdapterAllowed`
+    /// for current status. Lets clients discover adapters without event scans.
+    function getAdapters() external view returns (address[] memory) {
+        return knownAdapters;
+    }
+
+    function _isKnownAdapter(address adapter) private view returns (bool) {
+        for (uint256 i; i < knownAdapters.length; ++i) {
+            if (knownAdapters[i] == adapter) return true;
+        }
+        return false;
     }
 
     function setModuleAllowed(IRenewalModule module, bool allowed) external onlyOwner {

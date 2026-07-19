@@ -5,6 +5,7 @@ import { createMemo, Show } from "solid-js";
 
 import { PRICE_PER_YEAR_USD, useCart } from "../hooks/useCart";
 import type { OwnedName } from "../hooks/useOwnedNames";
+import { EnsfairyBadge } from "./ensfairy-badge";
 import { NameAvatar } from "./name-avatar";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -67,7 +68,10 @@ const NameRowBody = (properties: { expiryDate: number; name: string; poolLabel: 
   <>
     <NameAvatar name={properties.name} size="medium" />
     <div class="min-w-0 flex-1 text-left">
-      <p class="truncate font-bold">{properties.name}</p>
+      <div class="flex items-center gap-1.5">
+        <p class="truncate font-bold">{properties.name}</p>
+        <EnsfairyBadge name={properties.name} />
+      </div>
       <div class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
         <ExpiryBadge expiryDate={properties.expiryDate} />
         <span class="text-xs text-text-secondary">{formatExpiry(properties.expiryDate)}</span>

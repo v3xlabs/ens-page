@@ -9,15 +9,22 @@ import { createForkClient, type ForkClient, forkRpcPort } from "./anvil";
 import {
   baseRegistrarAbi,
   baseRegistrarAddress,
+  chainlinkEthUsdFeedAddress,
   ensRegistryAbi,
   ensRegistryAddress,
+  erc20Abi,
   expiryStorageSlot,
   labelToTokenId,
   oldEthControllerAddress,
   publicResolverAddress,
   testAccountAddress,
+  uniswapSwapRouterAddress,
+  usdcAddress,
+  usdcBalanceSlot,
+  wethAddress,
 } from "./ens";
-import { type NameFixture, writeFixtures } from "./fixtures-file";
+import { seedEnsfairyPools, seedPoolLabelsEnv } from "./ensfairy";
+import { type AdapterFixtures, type NameFixture, writeFixtures } from "./fixtures-file";
 
 const daySeconds = 86_400n;
 
@@ -148,16 +155,43 @@ const deployContract = async (
   return receipt.contractAddress;
 };
 
-const oneYearSeconds = 31_536_000n;
+// Matches the duration slider stops in the pool configuration UI.
+const allowedDurationDays = [10n, 20n, 30n, 60n, 90n, 180n, 365n, 730n];
 
 const factoryAdminAbi = parseAbi([
   "function setProtocolContracts(address ultraBulk, address baseRegistrar)",
   "function setDurationAllowed(uint256 duration, bool allowed)",
+  "function setAdapterAllowed(address adapter, bool allowed)",
 ]);
 
+type FactoryAdminCall =
+  | { args: readonly [Address, Address]; functionName: "setProtocolContracts"; }
+  | { args: readonly [Address, boolean]; functionName: "setAdapterAllowed"; }
+  | { args: readonly [bigint, boolean]; functionName: "setDurationAllowed"; };
+
+const writeFactoryAdmin = async (client: ForkClient, factory: Address, call: FactoryAdminCall) => {
+  const base = { abi: factoryAdminAbi, account: testAccountAddress, address: factory, chain: mainnet } as const;
+
+  const sendCall = () => {
+    if (call.functionName === "setProtocolContracts") {
+      return client.writeContract({ ...base, args: call.args, functionName: call.functionName });
+    }
+
+    if (call.functionName === "setDurationAllowed") {
+      return client.writeContract({ ...base, args: call.args, functionName: call.functionName });
+    }
+
+    return client.writeContract({ ...base, args: call.args, functionName: call.functionName });
+  };
+
+  await client.waitForTransactionReceipt({ hash: await sendCall() });
+};
+
 // Mirrors the `just fork` recipe: UltraBulk + RenewalPoolFactory wired to the
-// old controller and base registrar, with 1-year renewals allowed.
-const deployPoolContracts = async (client: ForkClient): Promise<Address> => {
+// old controller and base registrar, slider durations allowed, and the three
+// pool adapters (swap via the real Uniswap router, ERC4626 yield, streams)
+// deployed and allow-listed.
+const deployPoolContracts = async (client: ForkClient): Promise<{ adapters: AdapterFixtures; factory: Address; }> => {
   const ultraBulk = await deployContract(
     client,
     readArtifact("UltraBulk.sol/UltraBulk.json"),
@@ -170,29 +204,44 @@ const deployPoolContracts = async (client: ForkClient): Promise<Address> => {
     [testAccountAddress],
   );
 
-  const wireHash = await client.writeContract({
-    abi: factoryAdminAbi,
-    account: testAccountAddress,
-    address: factory,
-    args: [ultraBulk, baseRegistrarAddress],
-    chain: mainnet,
-    functionName: "setProtocolContracts",
+  await writeFactoryAdmin(client, factory, { args: [ultraBulk, baseRegistrarAddress], functionName: "setProtocolContracts" });
+
+  for (const days of allowedDurationDays) {
+    await writeFactoryAdmin(client, factory, { args: [days * 86_400n, true], functionName: "setDurationAllowed" });
+  }
+
+  const swap = await deployContract(
+    client,
+    readArtifact("SwapAdapter.sol/SwapAdapter.json"),
+    [uniswapSwapRouterAddress, wethAddress, chainlinkEthUsdFeedAddress],
+  );
+  const yieldAdapter = await deployContract(client, readArtifact("YieldAdapter.sol/YieldAdapter.json"), []);
+  const stream = await deployContract(client, readArtifact("StreamAdapter.sol/StreamAdapter.json"), []);
+
+  for (const adapter of [swap, yieldAdapter, stream]) {
+    await writeFactoryAdmin(client, factory, { args: [adapter, true], functionName: "setAdapterAllowed" });
+  }
+
+  return { adapters: { stream, swap, yield: yieldAdapter }, factory };
+};
+
+const seedUsdcBalance = async (client: ForkClient, account: Address, amount: bigint) => {
+  await client.setStorageAt({
+    address: usdcAddress,
+    index: usdcBalanceSlot(account),
+    value: toHex(amount, { size: 32 }),
   });
 
-  await client.waitForTransactionReceipt({ hash: wireHash });
-
-  const durationHash = await client.writeContract({
-    abi: factoryAdminAbi,
-    account: testAccountAddress,
-    address: factory,
-    args: [oneYearSeconds, true],
-    chain: mainnet,
-    functionName: "setDurationAllowed",
+  const balance = await client.readContract({
+    abi: erc20Abi,
+    address: usdcAddress,
+    args: [account],
+    functionName: "balanceOf",
   });
 
-  await client.waitForTransactionReceipt({ hash: durationHash });
-
-  return factory;
+  if (balance !== amount) {
+    throw new Error(`USDC balance seeding failed: expected ${amount}, read ${balance}`);
+  }
 };
 
 const setNameResolver = async (client: ForkClient, name: string, resolver: Address) => {
@@ -249,11 +298,20 @@ const globalSetup = async () => {
 
   await setNameResolver(client, records.name, publicResolverAddress);
 
-  const poolFactoryAddress = await deployPoolContracts(client);
+  const { adapters, factory: poolFactoryAddress } = await deployPoolContracts(client);
 
-  writeFileSync(testEnvPath, `VITE_RENEWAL_POOL_FACTORY_ADDRESS=${poolFactoryAddress}\n`);
+  await seedUsdcBalance(client, testAccountAddress, 1_000_000_000_000n);
+
+  const fairyPools = await seedEnsfairyPools(client, poolFactoryAddress);
+
+  writeFileSync(
+    testEnvPath,
+    `VITE_RENEWAL_POOL_FACTORY_ADDRESS=${poolFactoryAddress}\nVITE_SEED_POOL_LABELS=${seedPoolLabelsEnv(fairyPools)}\n`,
+  );
 
   writeFixtures({
+    adapters,
+    fairyPools,
     names: { expired, grace, records, soon },
     poolFactoryAddress,
     testAddress: testAccountAddress,

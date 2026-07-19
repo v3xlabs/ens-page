@@ -15,6 +15,32 @@ const parseAddress = (value: string | undefined): Address | undefined =>
 
 export const renewalPoolFactoryAddress = parseAddress(import.meta.env.VITE_RENEWAL_POOL_FACTORY_ADDRESS);
 
+// Seed scripts deploy pools whose labels live off-chain; the fork recipe hands
+// them to the app as "address:label;address:label".
+const parseSeedPoolLabels = (raw: string | undefined): Record<string, string> => {
+  if (!raw) return {};
+
+  return Object.fromEntries(
+    raw
+      .split(";")
+      .map((entry): [string, string] | undefined => {
+        const separator = entry.indexOf(":");
+
+        if (separator <= 0) return;
+
+        const address = entry.slice(0, separator);
+        const label = entry.slice(separator + 1).trim();
+
+        if (!isAddress(address) || !label) return;
+
+        return [address.toLowerCase(), label];
+      })
+      .filter((pair): pair is [string, string] => pair !== undefined),
+  );
+};
+
+export const seedPoolLabels = parseSeedPoolLabels(import.meta.env.VITE_SEED_POOL_LABELS);
+
 // A local mainnet fork carries the mainnet ENS deployment at the same
 // addresses, but viem's foundry chain doesn't declare them — graft them on so
 // ENS reads work when the wallet is on chain 31337.

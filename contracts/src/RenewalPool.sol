@@ -4,6 +4,7 @@ pragma solidity 0.8.30;
 import {UltraBulk} from "./UltraBulk.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IBaseRegistrar} from "./interfaces/IENSV1.sol";
+import {IPoolAdapter} from "./interfaces/IPoolAdapter.sol";
 import {IRenewalPoolFactory} from "./interfaces/IRenewalPoolFactory.sol";
 import {IRenewalModule} from "./interfaces/IRenewalModule.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
@@ -20,9 +21,28 @@ contract RenewalPool is Ownable, ReentrancyGuard, UUPSUpgradeable {
         bool configured;
     }
 
+    /// @notice One conversion step of a token route. `data` is adapter-specific configuration.
+    struct RouteStep {
+        IPoolAdapter adapter;
+        bytes data;
+    }
+
+    struct AdapterSetting {
+        address adapter;
+        bool enabled;
+    }
+
+    struct TokenRoute {
+        address token;
+        RouteStep[] steps;
+    }
+
     error InvalidConfiguration();
     error EmptyPlan();
     error AdapterNotAllowed(address adapter);
+    error AdapterNotEnabled(address adapter);
+    error RouteNotConfigured(address token);
+    error RouteOutputNotEth(address token);
     error ModuleNotAllowed(IRenewalModule module);
     error ModuleNotEnabled(IRenewalModule module);
     error LabelNotConfigured(string label);
@@ -46,6 +66,10 @@ contract RenewalPool is Ownable, ReentrancyGuard, UUPSUpgradeable {
     string[] private labels;
     mapping(address adapter => bool enabled) public isAdapterEnabled;
     mapping(IRenewalModule module => bool enabled) public isModuleEnabled;
+    mapping(address token => RouteStep[] steps) private tokenRoutes;
+
+    event TokenRouteConfigured(address indexed token, uint256 stepCount);
+    event RouteExecuted(address indexed token, uint256 amountIn, uint256 ethOut);
 
     function initialize(address owner_, IRenewalPoolFactory factory_) external {
         if (msg.sender != address(factory_)) revert Unauthorized();
@@ -141,9 +165,74 @@ contract RenewalPool is Ownable, ReentrancyGuard, UUPSUpgradeable {
         premium = premium_;
     }
 
-    function setAdapterEnabled(address adapter, bool enabled) external onlyOwner {
-        if (enabled && !factory.isAdapterAllowed(adapter)) revert AdapterNotAllowed(adapter);
-        isAdapterEnabled[adapter] = enabled;
+    /// @notice The entire adapter surface — enablement and token routes — is
+    /// reshaped through this one owner call, so any setup lands in a single
+    /// transaction. An empty `steps` array clears a token's route. Step
+    /// configuration (swap floors, target tokens) is owner-set, which is what
+    /// makes `executeRoute` safe to leave permissionless.
+    function configureAdapters(AdapterSetting[] calldata adapterSettings, TokenRoute[] calldata routes)
+        external
+        onlyOwner
+    {
+        for (uint256 i; i < adapterSettings.length; ++i) {
+            AdapterSetting calldata setting = adapterSettings[i];
+            if (setting.enabled && !factory.isAdapterAllowed(setting.adapter)) {
+                revert AdapterNotAllowed(setting.adapter);
+            }
+            isAdapterEnabled[setting.adapter] = setting.enabled;
+        }
+        for (uint256 i; i < routes.length; ++i) {
+            TokenRoute calldata route = routes[i];
+            if (route.token == address(0)) revert InvalidConfiguration();
+            delete tokenRoutes[route.token];
+            for (uint256 j; j < route.steps.length; ++j) {
+                address adapter = address(route.steps[j].adapter);
+                if (!isAdapterEnabled[adapter]) revert AdapterNotEnabled(adapter);
+                tokenRoutes[route.token].push(route.steps[j]);
+            }
+            emit TokenRouteConfigured(route.token, route.steps.length);
+        }
+    }
+
+    function getTokenRoute(address token) external view returns (RouteStep[] memory) {
+        return tokenRoutes[token];
+    }
+
+    /// @notice Converts `amountIn` of a deposited `token` into ETH held by the
+    /// pool by walking the owner-configured route. Callable by anyone as the
+    /// pre-op before a renewal.
+    function executeRoute(address token, uint256 amountIn) external nonReentrant returns (uint256 ethOut) {
+        return _executeRoute(token, amountIn);
+    }
+
+    /// @notice Runs a token route and renews in one transaction: the classic
+    /// relayer flow of "convert, renew, get paid".
+    function renewWithRoute(address token, uint256 amountIn, UltraBulk.PriceGroup[] calldata groups)
+        external
+        nonReentrant
+    {
+        _executeRoute(token, amountIn);
+        _renew(groups);
+    }
+
+    function _executeRoute(address token, uint256 amountIn) private returns (uint256 ethOut) {
+        RouteStep[] storage steps = tokenRoutes[token];
+        if (steps.length == 0) revert RouteNotConfigured(token);
+        uint256 balanceBefore = address(this).balance;
+        address currentToken = token;
+        uint256 currentAmount = amountIn;
+        for (uint256 i; i < steps.length; ++i) {
+            RouteStep storage step = steps[i];
+            address adapter = address(step.adapter);
+            if (!isAdapterEnabled[adapter] || !factory.isAdapterAllowed(adapter)) {
+                revert AdapterNotEnabled(adapter);
+            }
+            SafeTransferLib.safeTransfer(currentToken, adapter, currentAmount);
+            (currentToken, currentAmount) = step.adapter.execute(address(this), currentToken, currentAmount, step.data);
+        }
+        if (currentToken != address(0)) revert RouteOutputNotEth(currentToken);
+        ethOut = address(this).balance - balanceBefore;
+        emit RouteExecuted(token, amountIn, ethOut);
     }
 
     function setModuleEnabled(IRenewalModule module, bool enabled) external onlyOwner {

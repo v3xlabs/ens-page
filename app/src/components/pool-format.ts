@@ -6,7 +6,7 @@ export const copyAddress = (address: string | undefined) => {
 };
 
 export const buildConfigSummary = (input: {
-  durationYears: string;
+  durationDays: string;
   gasCeilingGwei: string;
   poolDisplay: string;
   premiumEth: string;
@@ -14,7 +14,7 @@ export const buildConfigSummary = (input: {
 }): TransactionSummaryRow[] => [
   { label: "Action", value: "Update pool configuration" },
   { label: "Pool", value: input.poolDisplay },
-  { label: "Renewal duration", value: `${input.durationYears} year${Number(input.durationYears) === 1 ? "" : "s"}` },
+  { label: "Renewal duration", value: `${input.durationDays} days` },
   { label: "Renewal window", value: `${input.renewalWindowDays} days before expiry` },
   { label: "Gas ceiling", value: `${input.gasCeilingGwei} gwei` },
   { label: "Relayer premium", value: `${input.premiumEth} ETH` },

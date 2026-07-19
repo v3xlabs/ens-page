@@ -9,6 +9,20 @@ export const renewalPoolFactoryAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getAdapters",
+    outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "adapter", type: "address" }],
+    name: "isAdapterAllowed",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ internalType: "address", name: "poolOwner", type: "address" }],
     name: "createPool",
     outputs: [{ internalType: "contract RenewalPool", name: "pool", type: "address" }],
@@ -26,6 +40,11 @@ export const renewalPoolFactoryAbi = [
   },
 ] as const satisfies Abi;
 
+const routeStepComponents = [
+  { internalType: "contract IPoolAdapter", name: "adapter", type: "address" },
+  { internalType: "bytes", name: "data", type: "bytes" },
+] as const;
+
 export const renewalPoolAbi = [
   {
     inputs: [
@@ -34,6 +53,58 @@ export const renewalPoolAbi = [
     ],
     name: "updateLabels",
     outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "adapter", type: "address" }],
+    name: "isAdapterEnabled",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: "address", name: "adapter", type: "address" },
+          { internalType: "bool", name: "enabled", type: "bool" },
+        ],
+        internalType: "struct RenewalPool.AdapterSetting[]",
+        name: "adapterSettings",
+        type: "tuple[]",
+      },
+      {
+        components: [
+          { internalType: "address", name: "token", type: "address" },
+          { components: routeStepComponents, internalType: "struct RenewalPool.RouteStep[]", name: "steps", type: "tuple[]" },
+        ],
+        internalType: "struct RenewalPool.TokenRoute[]",
+        name: "routes",
+        type: "tuple[]",
+      },
+    ],
+    name: "configureAdapters",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "token", type: "address" }],
+    name: "getTokenRoute",
+    outputs: [
+      { components: routeStepComponents, internalType: "struct RenewalPool.RouteStep[]", name: "", type: "tuple[]" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "token", type: "address" },
+      { internalType: "uint256", name: "amountIn", type: "uint256" },
+    ],
+    name: "executeRoute",
+    outputs: [{ internalType: "uint256", name: "ethOut", type: "uint256" }],
     stateMutability: "nonpayable",
     type: "function",
   },
