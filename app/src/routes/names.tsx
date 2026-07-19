@@ -12,6 +12,7 @@ import { useHiddenNames } from "../hooks/useHiddenNames";
 import { useOwnedNames } from "../hooks/useOwnedNames";
 import { usePools } from "../hooks/usePools";
 import { shortenAddress } from "../utils/ens";
+import { isReverseName } from "../utils/renewal";
 
 const GRACE_PERIOD_DAYS = 90;
 const EXPIRING_SOON_DAYS = 30;
@@ -64,15 +65,17 @@ export const NamesPage = () => {
   const hiddenNames = createMemo(() => new Set(getHiddenNamesForAddress(address()).map(name => name.toLowerCase())));
   const isHidden = (name: string) => hiddenNames().has(name.toLowerCase());
 
-  const sortedNames = createMemo(() => [...getNamesForAddress(address())].sort((a, b) => {
-    if (a.expiryDate === 0 && b.expiryDate === 0) return a.name.localeCompare(b.name);
+  const sortedNames = createMemo(() => getNamesForAddress(address())
+    .filter(owned => !isReverseName(owned.name))
+    .sort((a, b) => {
+      if (a.expiryDate === 0 && b.expiryDate === 0) return a.name.localeCompare(b.name);
 
-    if (a.expiryDate === 0) return 1;
+      if (a.expiryDate === 0) return 1;
 
-    if (b.expiryDate === 0) return -1;
+      if (b.expiryDate === 0) return -1;
 
-    return a.expiryDate - b.expiryDate;
-  }));
+      return a.expiryDate - b.expiryDate;
+    }));
 
   const searchedNames = createMemo(() => {
     const query = filterQuery()
@@ -203,7 +206,7 @@ export const NamesPage = () => {
       <section class="space-y-3">
         <div class="flex items-center gap-2">
           <input
-            class="input flex-1"
+            class="input names-toolbar-control flex-1"
             data-testid="names-search"
             onInput={event => handleSearchInput(event.currentTarget.value)}
             placeholder="Filter names…"
@@ -212,8 +215,8 @@ export const NamesPage = () => {
           />
           <button
             aria-pressed={selectMode()}
+            class="button names-toolbar-control"
             classList={{
-              button: true,
               primary: selectMode(),
               subtle: !selectMode(),
             }}
@@ -225,7 +228,7 @@ export const NamesPage = () => {
             Select
           </button>
           <button
-            class="icon-button size-10"
+            class="icon-button names-toolbar-control"
             disabled={isLoading()}
             onClick={() => void handleRefresh()}
             title="Fetch names from the ENS subgraph"
@@ -242,12 +245,6 @@ export const NamesPage = () => {
           <FilterChip count={pooledCount()} filter="pooled" label="In a pool" />
           <FilterChip count={hiddenCount()} filter="hidden" label="Hidden" />
         </div>
-
-        <Show when={selectMode()}>
-          <p class="text-sm text-text-secondary">
-            Select mode is on: clicking a name adds it to the renewal cart instead of opening it.
-          </p>
-        </Show>
       </section>
 
       <Show when={address()}>

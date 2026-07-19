@@ -1,3 +1,4 @@
+import { isRenewableEthName } from "../utils/renewal";
 import { createStoredSignal } from "../utils/storage";
 
 export type PriceTier = "3char" | "4char" | "standard";
@@ -32,7 +33,8 @@ const isCartItem = (raw: unknown): raw is CartItem => {
   return typeof candidate.name === "string"
     && typeof candidate.expiryDate === "number"
     && typeof candidate.tier === "string"
-    && candidate.tier in PRICE_PER_YEAR_USD;
+    && candidate.tier in PRICE_PER_YEAR_USD
+    && isRenewableEthName(candidate.name);
 };
 
 const parseItems = (raw: unknown): Record<string, CartItem> | undefined => {
@@ -75,6 +77,8 @@ const totalPriceUsd = (years: number) => {
 
 const addItem = (name: string, expiryDate: number) => {
   const normalized = name.toLowerCase();
+
+  if (!isRenewableEthName(normalized)) return;
 
   setItems(previous => ({
     ...previous,

@@ -37,7 +37,15 @@ const RENEW_ALL_ABI = [
 
 export const SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
 
-export const labelFor = (name: string) => name.replace(/\.eth$/, "");
+export const isRenewableEthName = (name: string) => {
+  const labels = name.split(".");
+
+  return labels.length === 2 && labels[0].length > 0 && labels[1].toLowerCase() === "eth";
+};
+
+export const isReverseName = (name: string) => name.toLowerCase().endsWith(".reverse");
+
+export const labelFor = (name: string) => name.replace(/\.eth$/i, "");
 
 export type RenewalQuote = {
   pricePerNameWei: bigint;

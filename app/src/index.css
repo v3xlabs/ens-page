@@ -246,6 +246,16 @@ body {
   height: 32px;
 }
 
+.names-toolbar-control {
+  height: 56px;
+  min-height: 56px;
+}
+
+.icon-button.names-toolbar-control {
+  width: 56px;
+  min-width: 56px;
+}
+
 .icon-button:hover {
   background: var(--thorin-background-secondary);
 }

@@ -10,7 +10,7 @@ import { usePools } from "../hooks/usePools";
 import { useTierRenewalQuotes } from "../hooks/useRenewalQuote";
 import { useTransaction } from "../hooks/useTransaction";
 import { normalizeName } from "../utils/ens";
-import { fetchRenewalQuote, groupNamesByTier, prepareRenewAll, SECONDS_PER_YEAR } from "../utils/renewal";
+import { fetchRenewalQuote, groupNamesByTier, isRenewableEthName, prepareRenewAll, SECONDS_PER_YEAR } from "../utils/renewal";
 import { TransactionModal, type TransactionSummaryRow } from "./transaction-modal";
 
 const TIER_ORDER: readonly PriceTier[] = ["3char", "4char", "standard"];
@@ -41,6 +41,7 @@ export const CheckoutPanel = () => {
 
   const [durationYears, setDurationYears] = createSignal(1);
   const [addNameValue, setAddNameValue] = createSignal("");
+  const [addNameError, setAddNameError] = createSignal("");
   const [isAddOpen, setIsAddOpen] = createSignal(false);
   const [showModal, setShowModal] = createSignal(false);
 
@@ -90,9 +91,16 @@ export const CheckoutPanel = () => {
 
     if (!normalized) return;
 
+    if (!isRenewableEthName(normalized)) {
+      setAddNameError("Only second-level .eth names can be renewed.");
+
+      return;
+    }
+
     addItem(normalized, 0);
     setExternalNames(previous => new Set(previous).add(normalized));
     setAddNameValue("");
+    setAddNameError("");
   };
 
   const handlePoolSelection = () => {
@@ -272,24 +280,30 @@ export const CheckoutPanel = () => {
           </div>
 
           <Show when={isAddOpen()}>
-            <div class="mt-3 flex items-center gap-2">
-              <input
-                class="input flex-1"
-                data-testid="checkout-add-name"
-                onInput={event => setAddNameValue(event.currentTarget.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") handleAddName();
+            <div class="mt-3">
+              <div class="flex items-center gap-2">
+                <input
+                  aria-describedby={addNameError() ? "checkout-add-name-error" : undefined}
+                  class="input flex-1"
+                  data-testid="checkout-add-name"
+                  onInput={event => setAddNameValue(event.currentTarget.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") handleAddName();
 
-                  if (event.key === "Escape") setIsAddOpen(false);
-                }}
-                placeholder="Add any name — even one you don't own…"
-                ref={element => setTimeout(() => element.focus())}
-                type="text"
-                value={addNameValue()}
-              />
-              <button class="button subtle" onClick={handleAddName} type="button">
-                Add
-              </button>
+                    if (event.key === "Escape") setIsAddOpen(false);
+                  }}
+                  placeholder="Add a .eth name — even one you don't own…"
+                  ref={element => setTimeout(() => element.focus())}
+                  type="text"
+                  value={addNameValue()}
+                />
+                <button class="button subtle" onClick={handleAddName} type="button">
+                  Add
+                </button>
+              </div>
+              <Show when={addNameError()}>
+                <p class="mt-1 text-sm text-red-primary" id="checkout-add-name-error" role="alert">{addNameError()}</p>
+              </Show>
             </div>
           </Show>
 
