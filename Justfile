@@ -50,8 +50,9 @@ fork:
         cast send --unlocked --from "$test_account" --rpc-url "$anvil_rpc_url" "$factory" "setAdapterAllowed(address,bool)" "$adapter" true >/dev/null
     done
     seed_output=$(cd app && node scripts/seed-ensfairy-pools.mjs "$anvil_rpc_url" "$factory")
+    appraised_pool=$(printf '%s\n' "$seed_output" | sed -n 's/^APPRAISED=//p')
     top200_pool=$(printf '%s\n' "$seed_output" | sed -n 's/^TOP200=//p')
     all_pool=$(printf '%s\n' "$seed_output" | sed -n 's/^ALL=//p')
-    printf 'VITE_ANVIL_RPC_URL=%s\nVITE_RENEWAL_POOL_FACTORY_ADDRESS=%s\nVITE_SEED_POOL_LABELS=%s:ensfairy top 200;%s:ensfairy all\n' "$anvil_rpc_url" "$factory" "$top200_pool" "$all_pool" > app/.env.local
-    printf 'Anvil fork ready at %s\nRenewalPoolFactory: %s\nAdapters: swap=%s yield=%s stream=%s\nFairy pools: top200=%s all=%s\n' "$anvil_rpc_url" "$factory" "$swap_adapter" "$yield_adapter" "$stream_adapter" "$top200_pool" "$all_pool"
+    printf 'VITE_ANVIL_RPC_URL=%s\nVITE_RENEWAL_POOL_FACTORY_ADDRESS=%s\nVITE_SEED_POOL_LABELS=%s:ensfairy appraised;%s:ensfairy top 200;%s:ensfairy all\n' "$anvil_rpc_url" "$factory" "$appraised_pool" "$top200_pool" "$all_pool" > app/.env.local
+    printf 'Anvil fork ready at %s\nRenewalPoolFactory: %s\nAdapters: swap=%s yield=%s stream=%s\nFairy pools: appraised=%s top200=%s all=%s\n' "$anvil_rpc_url" "$factory" "$swap_adapter" "$yield_adapter" "$stream_adapter" "$appraised_pool" "$top200_pool" "$all_pool"
     wait "$anvil_pid"

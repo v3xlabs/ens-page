@@ -1,6 +1,6 @@
-// Seeds the "ensfairy top 200" and "ensfairy all" pools on a local fork:
+// Seeds the ENSFairy pools on a local fork:
 // node scripts/seed-ensfairy-pools.mjs <rpcUrl> <factoryAddress>
-// Prints TOP200=<address> and ALL=<address> for the caller to capture.
+// Prints APPRAISED=<address>, TOP200=<address>, and ALL=<address> for the caller to capture.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +24,17 @@ const poolAbi = parseAbi([
 ]);
 
 const names = JSON.parse(readFileSync(fileURLToPath(new URL("ensfairy-names.json", import.meta.url)), "utf8"));
+const appraisals = JSON.parse(readFileSync(fileURLToPath(new URL("ensfairy-appraisals.json", import.meta.url)), "utf8"));
+
+if (!Array.isArray(appraisals.names)) throw new Error("Malformed ensfairy-appraisals.json");
+
+const appraisedLabels = appraisals.names.map(({ name }) => {
+  if (typeof name !== "string" || !name.endsWith(".eth")) {
+    throw new Error("Malformed ensfairy-appraisals.json: each name must end in .eth");
+  }
+
+  return name.slice(0, -4);
+});
 
 // The target may be a `just fork` anvil (chain id 31337) or a plain mainnet
 // fork (chain id 1) — skip viem's declared-chain assertion and let the node
@@ -72,8 +83,10 @@ const createSeededPool = async (labels) => {
   return pool;
 };
 
+const appraised = await createSeededPool(appraisedLabels);
 const top200 = await createSeededPool(names.top200);
 const all = await createSeededPool(names.all);
 
+console.log(`APPRAISED=${appraised}`);
 console.log(`TOP200=${top200}`);
 console.log(`ALL=${all}`);
