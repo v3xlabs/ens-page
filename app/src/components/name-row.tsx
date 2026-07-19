@@ -114,7 +114,7 @@ export const NameRow = (properties: { onVisibilityAction?: () => void; owned: Ow
               <NameRowBody expiryDate={properties.owned.expiryDate} name={properties.owned.name} poolLabel={properties.poolLabel} />
             </div>
           </Show>
-          <Show when={properties.onVisibilityAction && properties.visibilityActionLabel}>
+          <Show when={!properties.selectMode && properties.onVisibilityAction && properties.visibilityActionLabel}>
             <DropdownMenu placement="bottom-end" gutter={6}>
               <DropdownMenu.Trigger aria-label={`More actions for ${properties.owned.name}`} class="icon-button small" type="button">
                 <TbOutlineDotsVertical size={16} />
